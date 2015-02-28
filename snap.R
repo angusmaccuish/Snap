@@ -2,12 +2,13 @@
 # Hardcoded for case of suits=2 case.
 pair.probability.with.2.suits <- function(k, ranks=13, with.rogue=FALSE) {
   f <- function(s) {
+    cards <- 2*s
     p <- (-1)^(s+1)
     p <- p * choose(ranks, s)
     p <- p * 2^s
-    p <- p * factorial(2*ranks-2*s) / factorial(2*ranks)
-    p <- p * factorial(k-s) / factorial(k-2*s)
-    if (with.rogue) p <- p * (1-2*s/k)
+    p <- p / prod((2*ranks-cards+1):(2*ranks))
+    p <- p * prod((k-cards+1):(k-s))
+    if (with.rogue) p <- p * (1-cards/k)
     return (p)
   }
   max <- floor(k/2)
@@ -35,7 +36,7 @@ pair.probability.with.3.suits <- function(k, ranks=13, with.rogue=FALSE) {
       q <- q * 6^(s+t)
       q <- q / prod((3*ranks-cards+1):(3*ranks))
       q <- q * prod((k-cards+1):(k-n))
-      if (with.rogue) q <- q * (1-(2*n-t)/k)
+      if (with.rogue) q <- q * (1-cards/k)
       return (q)
     }
     return (sum(sapply(t.min:t.max, inner)))
