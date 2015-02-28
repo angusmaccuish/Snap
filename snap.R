@@ -1,12 +1,13 @@
 # Calculate theoretical probability of a pair occurring within the first k cards.
 # Hardcoded for case of suits=2 case.
 pair.probability.with.2.suits <- function(k, ranks=13, with.rogue=FALSE) {
+  deck <- 2*ranks
   f <- function(s) {
     cards <- 2*s
     p <- (-1)^(s+1)
     p <- p * choose(ranks, s)
     p <- p * 2^s
-    p <- p / prod((2*ranks-cards+1):(2*ranks))
+    p <- p / prod((deck-cards+1):deck)
     p <- p * prod((k-cards+1):(k-s))
     if (with.rogue) p <- p * (1-cards/k)
     return (p)
@@ -14,7 +15,7 @@ pair.probability.with.2.suits <- function(k, ranks=13, with.rogue=FALSE) {
   max <- floor(k/2)
   p <- if (max > 0) sum(sapply(1:max, f)) else 0
   if (with.rogue) {
-    weight <- k/(2*ranks+1)
+    weight <- k/(deck+1)
     p <- p * weight + pair.probability.with.2.suits(k, ranks, with.rogue=FALSE) * (1-weight)
   }
   return (p)
@@ -24,6 +25,7 @@ pair.probability.with.2.suits <- function(k, ranks=13, with.rogue=FALSE) {
 # Calculate theoretical probability of a pair occurring within the first k cards.
 # Hardcoded for case of suits=3 case.
 pair.probability.with.3.suits <- function(k, ranks=13, with.rogue=FALSE) {
+  deck <- 3*ranks
   outer <- function(n) {
     t.min <- max(0, n-ranks) # the minimum number of triples
     t.max <- floor(n/2) # the maximum number of triples
@@ -34,7 +36,7 @@ pair.probability.with.3.suits <- function(k, ranks=13, with.rogue=FALSE) {
       q <- q * choose(ranks, s)
       q <- q * choose(ranks-s, t)
       q <- q * 6^(s+t)
-      q <- q / prod((3*ranks-cards+1):(3*ranks))
+      q <- q / prod((deck-cards+1):deck)
       q <- q * prod((k-cards+1):(k-n))
       if (with.rogue) q <- q * (1-cards/k)
       return (q)
@@ -44,7 +46,7 @@ pair.probability.with.3.suits <- function(k, ranks=13, with.rogue=FALSE) {
   n.max <- floor(2*k/3)
   p <- if (n.max > 0) sum(sapply(1:n.max, outer)) else 0
   if (with.rogue) {
-    weight <- k/(3*ranks+1)
+    weight <- k/(deck+1)
     p <- p * weight + pair.probability.with.3.suits(k, ranks, with.rogue=FALSE) * (1-weight)
   }
   return (p)
@@ -54,6 +56,7 @@ pair.probability.with.3.suits <- function(k, ranks=13, with.rogue=FALSE) {
 # Calculate theoretical probability of a pair occurring within the first k cards.
 # Hardcoded for case of suits=4 case.
 pair.probability.with.4.suits <- function(k, ranks=13, with.rogue=FALSE) {
+  deck <- 4*ranks
   outer <- function(n) {
     q.min <- max(0, n-floor(k/2)) # the minimum number of quartets
     q.max <- floor(n/3) # the maximum number of quartets
@@ -75,7 +78,7 @@ pair.probability.with.4.suits <- function(k, ranks=13, with.rogue=FALSE) {
           p <- p * 24^t
           p <- p * 12^d
           p <- p * 24^q
-          p <- p / prod((4*ranks-cards+1):(4*ranks))
+          p <- p / prod((deck-cards+1):deck)
           p <- p * prod((k-cards+1):(k-n))
           if (with.rogue) p <- p * (1-cards/k)
           return (p)
@@ -89,7 +92,7 @@ pair.probability.with.4.suits <- function(k, ranks=13, with.rogue=FALSE) {
   n.max <- floor(3*k/4)
   p <- if (n.max > 0) sum(sapply(1:n.max, outer)) else 0
   if (with.rogue) {
-    weight <- k/(4*ranks+1)
+    weight <- k/(deck+1)
     p <- p * weight + pair.probability.with.4.suits(k, ranks, with.rogue=FALSE) * (1-weight)
   }
   return (p)
@@ -98,7 +101,6 @@ pair.probability.with.4.suits <- function(k, ranks=13, with.rogue=FALSE) {
 
 # (Unconditional) Probability that the first pair occurs at k.
 # Hardcoded for case of suits=2 case.
-# BROKEN!!!
 first.pair.probability.with.2.suits <- function(k, ranks=13) {
   return ((1 - pair.probability.with.2.suits(k-2, ranks-1))/(2*ranks-1))
 }
