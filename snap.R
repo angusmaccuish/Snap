@@ -27,12 +27,14 @@ pair.probability.with.3.suits <- function(k, ranks=13, with.rogue=FALSE) {
     t.min <- max(0, n-ranks) # the minimum number of triples
     t.max <- floor(n/2) # the maximum number of triples
     inner <- function(t) {
+      s <- n-2*t
+      cards <- 2*s+3*t
       q <- (-1)^(n+1)
-      q <- q * choose(ranks, n-2*t)
-      q <- q * choose(ranks-n+2*t, t)
-      q <- q * 6^(n-t)
-      q <- q / prod((3*ranks+t-2*n+1):(3*ranks))
-      q <- q * prod((k+t-2*n+1):(k-n))
+      q <- q * choose(ranks, s)
+      q <- q * choose(ranks-s, t)
+      q <- q * 6^(s+t)
+      q <- q / prod((3*ranks-cards+1):(3*ranks))
+      q <- q * prod((k-cards+1):(k-n))
       if (with.rogue) q <- q * (1-(2*n-t)/k)
       return (q)
     }
