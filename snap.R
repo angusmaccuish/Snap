@@ -73,7 +73,7 @@ pair.probability.with.4.suits <- function(k, ranks=13) {
           p <- p * 12^d
           p <- p * 24^q
           p <- p / prod((4*ranks-cards+1):(4*ranks))
-          p <- p * factorial(k-n) / factorial(k-cards)
+          p <- p * prod((k-cards+1):(k-n))
           return (p)
         }
         return (sum(sapply(t.min:t.max, innert)))
