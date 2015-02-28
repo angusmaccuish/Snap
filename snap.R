@@ -50,7 +50,7 @@ pair.probability.with.3.suits <- function(k, ranks=13, with.rogue=FALSE) {
 
 # Calculate theoretical probability of a pair occurring within the first k cards.
 # Hardcoded for case of suits=4 case.
-pair.probability.with.4.suits <- function(k, ranks=13) {
+pair.probability.with.4.suits <- function(k, ranks=13, with.rogue=FALSE) {
   outer <- function(n) {
     q.min <- max(0, n-floor(k/2)) # the minimum number of quartets
     q.max <- floor(n/3) # the maximum number of quartets
@@ -74,6 +74,7 @@ pair.probability.with.4.suits <- function(k, ranks=13) {
           p <- p * 24^q
           p <- p / prod((4*ranks-cards+1):(4*ranks))
           p <- p * prod((k-cards+1):(k-n))
+          if (with.rogue) p <- p * (1-cards/k)
           return (p)
         }
         return (sum(sapply(t.min:t.max, innert)))
@@ -84,6 +85,10 @@ pair.probability.with.4.suits <- function(k, ranks=13) {
   }
   n.max <- floor(3*k/4)
   p <- if (n.max > 0) sum(sapply(1:n.max, outer)) else 0
+  if (with.rogue) {
+    weight <- k/(4*ranks+1)
+    p <- p * weight + pair.probability.with.4.suits(k, ranks, with.rogue=FALSE) * (1-weight)
+  }
   return (p)
 }
 
