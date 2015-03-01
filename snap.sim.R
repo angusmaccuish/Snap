@@ -13,6 +13,25 @@ mc.pair.probability <- function(k, ranks=13, suits=4, rogues=0, iterations=10000
 }
 
 
+# Monte Carlo simulation as above but split over available cores.
+# Useful for calculating accurate probability for one particular set of inputs.
+mc.pair.probability.parallel <- function(k, ranks=13, suits=4, rogues=0, iterations=10000) {
+  cores <- parallel::detectCores()
+  if (cores > 1) {
+    # split iterations between cores, with excess in final batch if required
+    batch.size <- floor(iterations/cores)
+    batches <- c(rep(batch.size, cores-1), iterations-(cores-1)*batch.size)
+  }
+  else {
+    # No parallelism available
+    batches <- c(iterations)
+  }
+  fun <- function(iterations) { return(mc.pair.probability(k, ranks, suits, rogues, iterations)) }
+  results <- unlist(parallel::mclapply(batches, fun, mc.cores=cores))
+  return (mean(results))
+}
+
+
 # Suitable for use in an apply type function.
 # Example usage:
 #   k <- 1:26
