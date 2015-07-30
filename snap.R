@@ -137,14 +137,14 @@ first.pair.probability.with.2.suits <- function(k, ranks=13) {
 # (Unconditional) Probability that the first pair occurs at k.
 # Hardcoded for case of suits=3 case.
 first.pair.probability.with.3.suits <- function(k, ranks=13) {
+  deck <- 3*ranks
   p <- 0
   if (k==2) p <- 1
   if (k>2) {
-    deck <- 3*ranks
     p1 <- pair.probability.with.3.suits.given.joker.already.dealt(k-2, ranks-1) * (k-3)/(deck-2)
     p2 <- 1/(deck-2)
     p3 <- pair.probability.with.3.suits(k-2, ranks-1) * (deck-k)/(deck-2)
     p <- 1-(p1+p2+p3)
   }
-  return (p*2/(deck-2))
+  return (p*2/(deck-1))
 }
