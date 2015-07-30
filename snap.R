@@ -210,7 +210,19 @@ first.pair.probability.with.4.suits <- function(k, ranks=13) {
   probability.of.no.pair.before.pair.at.k <- 0
   if (k==2) probability.of.no.pair.before.pair.at.k <- 1
   if (k>2) {
-    probability.of.no.pair.before.pair.at.k <- 0 #TODO
+    p02 <- (deck-k)*(deck-k-1)/(deck-2)/(deck-3)
+    p20 <- (k-2)*(k-3)/(deck-2)/(deck-3)
+    p11 <- 1-p02-p20
+    p1 <- if (p02 > 0) 
+            pair.probability.with.4.suits(k-2, ranks-1) * p02 
+          else 0
+    p2 <- if (p20 > 0) 
+            pair.probability.with.4.suits(k-2, ranks-1) * p20 #### JUST FOR NOW
+          else 0 
+    p3 <- if (p11 > 0) 
+            (2/(deck-2) + pair.probability.with.4.suits.given.joker.already.dealt(k-2, ranks-1)*(deck-4)/(deck-2)) * p11 
+          else 0
+    probability.of.no.pair.before.pair.at.k <- 1-p1-p2-p3
   }
   probability.of.pair.at.k <- 3/(deck-1)
   return (probability.of.no.pair.before.pair.at.k * probability.of.pair.at.k)

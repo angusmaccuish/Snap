@@ -1,5 +1,7 @@
-# Monte Carlo simulation to determine the probability of a pair occurring
-# within the first k cards.
+###########################################################################
+# Monte Carlo simulation to determine the probability of a pair occurring #
+# within the first k cards.                                               #
+###########################################################################
 mc.pair.probability <- function(k, ranks=13, suits=4, rogues=0, iterations=10000) {
   cards <- rep(1:ranks, suits)
   if (rogues > 0) cards <- c(cards, -(1:rogues))
@@ -13,8 +15,10 @@ mc.pair.probability <- function(k, ranks=13, suits=4, rogues=0, iterations=10000
 }
 
 
-# Monte Carlo simulation as above but split over available cores.
-# Useful for calculating accurate probability for one particular set of inputs.
+#################################################################################
+# Monte Carlo simulation as above but split over available cores.               #
+# Useful for calculating accurate probability for one particular set of inputs. #
+#################################################################################
 mc.pair.probability.parallel <- function(k, ranks=13, suits=4, rogues=0, iterations=10000) {
   cores <- parallel::detectCores()
   if (cores > 1) {
@@ -32,11 +36,13 @@ mc.pair.probability.parallel <- function(k, ranks=13, suits=4, rogues=0, iterati
 }
 
 
-# Suitable for use in an apply type function.
-# Example usage:
-#   k <- 1:26
-#   results <- parallel::mclapply(k, mc.pair.simulation(iterations=100000, ranks=13, suits=2, debug=TRUE))
-#   plot(k, unlist(results))
+############################################################################################################
+# Suitable for use in an apply type function.                                                              #
+# Example usage:                                                                                           #
+#   k <- 1:26                                                                                              #
+#   results <- parallel::mclapply(k, mc.pair.simulation(iterations=100000, ranks=13, suits=2, debug=TRUE)) #
+#   plot(k, unlist(results))                                                                               #
+############################################################################################################
 mc.pair.simulation <- function(iterations, ranks=13, suits=4, rogues=0, debug=FALSE) {
   return (function(k) { 
     if (debug) print(k)
@@ -46,7 +52,9 @@ mc.pair.simulation <- function(iterations, ranks=13, suits=4, rogues=0, debug=FA
 }
 
 
-# Monte Carlo simulation to determine the probability of a pair occurring at kth card first
+#############################################################################################
+# Monte Carlo simulation to determine the probability of a pair occurring at kth card first #
+#############################################################################################
 mc.first.pair.probability <- function(k, ranks=13, suits=4, iterations=10000) {
   cards <- rep(1:ranks, suits)
   count <- 0
@@ -61,11 +69,31 @@ mc.first.pair.probability <- function(k, ranks=13, suits=4, iterations=10000) {
 }
 
 
-# Suitable for use in an apply type function.
-# Example usage:
-#   k <- 1:26
-#   results <- parallel::mclapply(k, mc.first.pair.simulation(iterations=100000, ranks=13, suits=2, debug=TRUE))
-#   plot(k, unlist(results))
+#######################################################################
+# Monte Carlo simulation to determine the mean location of first pair #
+#######################################################################
+mc.first.pair.mean.location <- function(ranks=13, suits=4, iterations=10000) {
+  cards <- rep(1:ranks, suits)
+  sum <- 0
+  for (n in 1:iterations) {
+    cards <- sample(cards)
+    card <- match(TRUE, cards == c(tail(cards, -1), NA))
+    if (!is.na(card)) {
+      location <- card+1
+      sum <- sum + location
+    }
+  }
+  return (sum/iterations)
+}
+
+
+##################################################################################################################
+# Suitable for use in an apply type function.                                                                    #
+# Example usage:                                                                                                 #
+#   k <- 1:26                                                                                                    #
+#   results <- parallel::mclapply(k, mc.first.pair.simulation(iterations=100000, ranks=13, suits=2, debug=TRUE)) #
+#   plot(k, unlist(results))                                                                                     #
+##################################################################################################################
 mc.first.pair.simulation <- function(iterations, ranks=13, suits=4, debug=FALSE) {
   return (function(k) { 
     if (debug) print(k)
