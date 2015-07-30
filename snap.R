@@ -81,8 +81,7 @@ pair.probability.with.3.suits.given.joker.already.dealt <- function(k, ranks=13)
       q <- q * 6^(s+t)
       q <- q / prod((deck-cards+1):deck)
       q <- q * prod((k-cards):(k-n))
-      q <- q * (k-n-1)/(k-n)
-      q <- q / (k-1)
+      q <- q * (k-n-1)/(k-n)/(k-1)
       return (q)
     }
     return (sum(sapply(t.min:t.max, inner)))
@@ -185,8 +184,7 @@ pair.probability.with.4.suits.given.joker.already.dealt <- function(k, ranks=13)
           p <- p * 24^q
           p <- p / prod((deck-cards+1):deck)
           p <- p * prod((k-cards):(k-n))
-          p <- p * (k-n-1)/(k-n)
-          p <- p / (k-1)
+          p <- p * (k-n-1)/(k-n)/(k-1)
           return (p)
         }
         return (sum(sapply(t.min:t.max, innert)))
@@ -217,7 +215,7 @@ first.pair.probability.with.4.suits <- function(k, ranks=13) {
             pair.probability.with.4.suits(k-2, ranks-1) * p02 
           else 0
     p2 <- if (p20 > 0) 
-            pair.probability.with.4.suits(k-2, ranks-1) * p20 #### JUST FOR NOW
+            pair.probability.with.4.suits(k-4, ranks-1) * p20 #### JUST FOR NOW
           else 0 
     p3 <- if (p11 > 0) 
             (2/(deck-2) + pair.probability.with.4.suits.given.joker.already.dealt(k-2, ranks-1)*(deck-4)/(deck-2)) * p11 
