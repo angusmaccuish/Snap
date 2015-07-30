@@ -185,7 +185,7 @@ pair.probability.with.4.suits.given.joker.already.dealt <- function(k, ranks=13)
           p <- p * 24^q
           p <- p / prod((deck-cards+1):deck)
           p <- p * prod((k-cards):(k-n))
-          p <- p * (k-cards-1)/(k-n)
+          p <- p * (k-n-1)/(k-n)
           p <- p / (k-1)
           return (p)
         }
