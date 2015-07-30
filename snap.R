@@ -19,6 +19,21 @@ pair.probability.with.2.suits <- function(k, ranks=13) {
 }
 
 
+################################################################
+# (Unconditional) Probability that the first pair occurs at k. #
+# Hardcoded for case of suits=2 case.                          #
+################################################################
+first.pair.probability.with.2.suits <- function(k, ranks=13) {
+  probability.of.no.pair.before.pair.at.k <- 0
+  if (k==2) probability.of.no.pair.before.pair.at.k <- 1
+  if (k>2) {
+    probability.of.no.pair.before.pair.at.k <- 1 - pair.probability.with.2.suits(k-2, ranks-1)
+  }
+  probability.of.pair.at.k <- 1/(2*ranks-1)
+  return (probability.of.no.pair.before.pair.at.k * probability.of.pair.at.k)
+}
+
+
 ###################################################################################
 # Calculate theoretical probability of a pair occurring within the first k cards. #
 # Hardcoded for case of suits=3 case.                                             #
@@ -75,6 +90,25 @@ pair.probability.with.3.suits.given.joker.already.dealt <- function(k, ranks=13)
   n.max <- floor(2*k/3)
   p <- if (n.max > 0) sum(sapply(1:n.max, outer)) else 0
   return (p)
+}
+
+
+################################################################
+# (Unconditional) Probability that the first pair occurs at k. #
+# Hardcoded for case of suits=3 case.                          #
+################################################################
+first.pair.probability.with.3.suits <- function(k, ranks=13) {
+  deck <- 3*ranks
+  probability.of.no.pair.before.pair.at.k <- 0
+  if (k==2) probability.of.no.pair.before.pair.at.k <- 1
+  if (k>2) {
+    p1 <- pair.probability.with.3.suits.given.joker.already.dealt(k-2, ranks-1) * (k-3)/(deck-2)
+    p2 <- 1/(deck-2)
+    p3 <- pair.probability.with.3.suits(k-2, ranks-1) * (deck-k)/(deck-2)
+    probability.of.no.pair.before.pair.at.k <- 1-(p1+p2+p3)
+  }
+  probability.of.pair.at.k <- 2/(deck-1)
+  return (probability.of.no.pair.before.pair.at.k * probability.of.pair.at.k)
 }
 
 
@@ -169,28 +203,15 @@ pair.probability.with.4.suits.given.joker.already.dealt <- function(k, ranks=13)
 
 ################################################################
 # (Unconditional) Probability that the first pair occurs at k. #
-# Hardcoded for case of suits=2 case.                          #
+# Hardcoded for case of suits=4 case.                          #
 ################################################################
-first.pair.probability.with.2.suits <- function(k, ranks=13) {
-  probability.of.pair.at.k <- 1 / (2*ranks-1)
-  probability.of.no.pair.before.pair.at.k <- 1 - pair.probability.with.2.suits(k-2, ranks-1)
-  return (probability.of.no.pair.before.pair.at.k * probability.of.pair.at.k)
-}
-
-
-################################################################
-# (Unconditional) Probability that the first pair occurs at k. #
-# Hardcoded for case of suits=3 case.                          #
-################################################################
-first.pair.probability.with.3.suits <- function(k, ranks=13) {
-  deck <- 3*ranks
-  p <- 0
-  if (k==2) p <- 1
+first.pair.probability.with.4.suits <- function(k, ranks=13) {
+  deck <- 4*ranks
+  probability.of.no.pair.before.pair.at.k <- 0
+  if (k==2) probability.of.no.pair.before.pair.at.k <- 1
   if (k>2) {
-    p1 <- pair.probability.with.3.suits.given.joker.already.dealt(k-2, ranks-1) * (k-3)/(deck-2)
-    p2 <- 1/(deck-2)
-    p3 <- pair.probability.with.3.suits(k-2, ranks-1) * (deck-k)/(deck-2)
-    p <- 1-(p1+p2+p3)
+    probability.of.no.pair.before.pair.at.k <- 0 #TODO
   }
-  return (p*2/(deck-1))
+  probability.of.pair.at.k <- 3/(deck-1)
+  return (probability.of.no.pair.before.pair.at.k * probability.of.pair.at.k)
 }
