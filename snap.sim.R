@@ -70,20 +70,25 @@ mc.first.pair.probability <- function(k, ranks=13, suits=4, iterations=10000) {
 
 
 #######################################################################
-# Monte Carlo simulation to determine the mean location of first pair #
+# Monte Carlo simulation to determine the mean location of first pair.#
+# Use fact that reverse combination of the cards is equally likely to #
+# occur, so use antithetic match from right direction as well as left.#
 #######################################################################
 mc.first.pair.mean.location <- function(ranks=13, suits=4, iterations=10000) {
+  deck = ranks*suits
   cards <- rep(1:ranks, suits)
   sum <- 0
   for (n in 1:iterations) {
     cards <- sample(cards)
     card <- match(TRUE, cards == c(tail(cards, -1), NA))
     if (!is.na(card)) {
-      location <- card+1
-      sum <- sum + location
+      first.from.left <- card+1
+      first.from.right <- tail(deck - which(cards == c(NA, head(cards, -1))) + 2, n=1)
+      sum <- sum + first.from.left
+      sum <- sum + first.from.right
     }
   }
-  return (sum/iterations)
+  return (sum/iterations/2)
 }
 
 
