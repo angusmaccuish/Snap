@@ -171,76 +171,33 @@ pair.probability.with.4.suits.and.pair.of.jokers <- function(k, ranks=13) {
         t.min <- max(0, n-floor(2*k/3)-3*q-2*d) # the minimum number of triplets
         t.max <- floor((n-3*q-2*d)/2) # the maximum number of triplets
         innert <- function(t) {
-          # Work out what combinations of jack and non-joker pairs are required to make up
-          # the required amount of matches. If the triples, twins and quartets leave only 2 cards 
-          # remaining, these must the 2 jokers. Otherwise, we can try a combination of single pairs 
-          # with either 0 or 1 pair of jokers.
           remaining <- n-3*q-2*d-2*t
           jokers.min <- (remaining > 0 && 3*t+4*d+4*q+2 == deck)
           jokers.max <- (remaining > 0)
           innerj <- function(j) {
             s <- n-3*q-2*d-2*t-j
-            cards <- 2*s+2*j+3*t+4*d+4*q
-            p <- (-1)^(n+1)
-            p <- p * choose(ranks, s)
-            p <- p * choose(ranks-s, t)
-            p <- p * choose(ranks-s-t, d)
-            p <- p * choose(ranks-s-t-d, q)
-            p <- p * 2^j
-            p <- p * 12^s
-            p <- p * 24^t
-            p <- p * 12^d
-            p <- p * 24^q
-            p <- p / prod((deck-cards+1):deck)
-            p <- p * prod((k-cards+1):(k-n))
+            p <- 0
+            if (s+t+d+q <= ranks) {
+              cards <- 2*s+2*j+3*t+4*d+4*q
+              p <- (-1)^(n+1)
+              p <- p * choose(ranks, s)
+              p <- p * choose(ranks-s, t)
+              p <- p * choose(ranks-s-t, d)
+              p <- p * choose(ranks-s-t-d, q)
+              p <- p * 2^j
+              p <- p * 12^s
+              p <- p * 24^t
+              p <- p * 12^d
+              p <- p * 24^q
+              p <- p / prod((deck-cards+1):deck)
+              p <- p * prod((k-cards+1):(k-n))
+              # Doesn't work :(, still trying to work out how to exclude joker at k...
+              #if (j==0) p <- p * (1-2*(k-cards)/(k-n)/(deck-cards))
+              #if (j==1) p <- p * (1+2/(k-n))
+            }
             return (p)
           }
           return (sum(sapply(jokers.min:jokers.max, innerj)))
-        }
-        return (sum(sapply(t.min:t.max, innert)))
-      }
-      return (sum(sapply(d.min:d.max, innerd)))
-    }
-    return (sum(sapply(q.min:q.max, innerq)))
-  }
-  n.max <- floor(3*k/4)
-  p <- if (n.max > 0) sum(sapply(1:n.max, outer)) else 0
-  return (p)
-}
-
-
-###################################################################################
-# Calculate theoretical probability of a pair occurring within the first k cards. #
-# Conditioned on a joker having been dealt before the k^th card.                  #
-# Hardcoded for case of suits=4 case.                                             #
-###################################################################################
-pair.probability.with.4.suits.given.joker.already.dealt <- function(k, ranks=13) {
-  deck <- 4*ranks
-  outer <- function(n) {
-    q.min <- max(0, n-floor(k/2)) # the minimum number of quartets
-    q.max <- floor(n/3) # the maximum number of quartets
-    innerq <- function(q) {
-      d.min <- max(0, n-floor(2*k/3)-3*q) # the minimum number of doublets
-      d.max <- floor((n-3*q)/2) # the maximum number of doublets
-      innerd <- function(d) {
-        t.min <- max(0, n-floor(2*k/3)-3*q-2*d) # the minimum number of triplets
-        t.max <- floor((n-3*q-2*d)/2) # the maximum number of triplets
-        innert <- function(t) {
-          s <- n-3*q-2*d-2*t
-          cards <- 2*s+3*t+4*d+4*q
-          p <- (-1)^(n+1)
-          p <- p * choose(ranks, s)
-          p <- p * choose(ranks-s, t)
-          p <- p * choose(ranks-s-t, d)
-          p <- p * choose(ranks-s-t-d, q)
-          p <- p * 12^s
-          p <- p * 24^t
-          p <- p * 12^d
-          p <- p * 24^q
-          p <- p / prod((deck-cards+1):deck)
-          p <- p * prod((k-cards):(k-n))
-          p <- p * (k-n-1)/(k-n)/(k-1)
-          return (p)
         }
         return (sum(sapply(t.min:t.max, innert)))
       }
@@ -265,7 +222,6 @@ first.pair.probability.with.4.suits <- function(k, ranks=13) {
   if (k==3) probability.of.no.pair.before.pair.at.k <- 1-2/(deck-2)
   if (k>3) {
     p <- 2/(deck-2)
-    # slightly wrong - the jokers function should exclude possibility of a trailing joker
     q <- pair.probability.with.4.suits.and.pair.of.jokers(k-2, ranks-1) * (1-p)
     probability.of.no.pair.before.pair.at.k <- 1-(p+q)
   }
