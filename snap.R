@@ -118,28 +118,31 @@ first.pair.probability.with.3.suits <- function(k, ranks=13) {
 pair.probability.with.4.suits <- function(k, ranks=13) {
   deck <- 4*ranks
   outer <- function(n) {
-    q.min <- max(0, n-floor(k/2)) # the minimum number of quartets
+    q.min <- 0 # TODO
     q.max <- floor(n/3) # the maximum number of quartets
     innerq <- function(q) {
-      d.min <- max(0, n-floor(2*k/3)-3*q) # the minimum number of doublets
+      d.min <- 0 # TODO
       d.max <- floor((n-3*q)/2) # the maximum number of doublets
       innerd <- function(d) {
-        t.min <- max(0, n-floor(2*k/3)-3*q-2*d) # the minimum number of triplets
+        t.min <- 0 # TODO
         t.max <- floor((n-3*q-2*d)/2) # the maximum number of triplets
         innert <- function(t) {
           s <- n-3*q-2*d-2*t
-          cards <- 2*s+3*t+4*d+4*q
-          p <- (-1)^(n+1)
-          p <- p * choose(ranks, s)
-          p <- p * choose(ranks-s, t)
-          p <- p * choose(ranks-s-t, d)
-          p <- p * choose(ranks-s-t-d, q)
-          p <- p * 12^s
-          p <- p * 24^t
-          p <- p * 12^d
-          p <- p * 24^q
-          p <- p / prod((deck-cards+1):deck)
-          p <- p * prod((k-cards+1):(k-n))
+          p <- 0
+          if (s >= 0 && s+t+d+q <= ranks) {
+            cards <- 2*s+3*t+4*d+4*q
+            p <- (-1)^(n+1)
+            p <- p * choose(ranks, s)
+            p <- p * choose(ranks-s, t)
+            p <- p * choose(ranks-s-t, d)
+            p <- p * choose(ranks-s-t-d, q)
+            p <- p * 12^s
+            p <- p * 24^t
+            p <- p * 12^d
+            p <- p * 24^q
+            p <- p / prod((deck-cards+1):deck)
+            p <- p * prod((k-cards+1):(k-n))
+          }
           return (p)
         }
         return (sum(sapply(t.min:t.max, innert)))
@@ -162,22 +165,21 @@ pair.probability.with.4.suits <- function(k, ranks=13) {
 pair.probability.with.4.suits.and.pair.of.jokers <- function(k, ranks=13) {
   deck <- 4*ranks + 2
   outer <- function(n) {
-    q.min <- max(0, n-floor(k/2)) # the minimum number of quartets
+    q.min <- 0
     q.max <- floor(n/3) # the maximum number of quartets
     innerq <- function(q) {
-      d.min <- max(0, n-floor(2*k/3)-3*q) # the minimum number of doublets
+      d.min <- 0
       d.max <- floor((n-3*q)/2) # the maximum number of doublets
       innerd <- function(d) {
-        t.min <- max(0, n-floor(2*k/3)-3*q-2*d) # the minimum number of triplets
+        t.min <- 0
         t.max <- floor((n-3*q-2*d)/2) # the maximum number of triplets
         innert <- function(t) {
           remaining <- n-3*q-2*d-2*t
-          jokers.min <- (remaining > 0 && 3*t+4*d+4*q+2 == deck)
           jokers.max <- (remaining > 0)
           innerj <- function(j) {
             s <- n-3*q-2*d-2*t-j
             p <- 0
-            if (s+t+d+q <= ranks) {
+            if (s >= 0 && s+t+d+q <= ranks) {
               cards <- 2*s+2*j+3*t+4*d+4*q
               p <- (-1)^(n+1)
               p <- p * choose(ranks, s)
@@ -191,13 +193,12 @@ pair.probability.with.4.suits.and.pair.of.jokers <- function(k, ranks=13) {
               p <- p * 24^q
               p <- p / prod((deck-cards+1):deck)
               p <- p * prod((k-cards+1):(k-n))
-              # Doesn't work :(, still trying to work out how to exclude joker at k...
               #if (j==0) p <- p * (1-2*(k-cards)/(k-n)/(deck-cards))
-              #if (j==1) p <- p * (1+2/(k-n))
+              #if (j==1) p <- p * (1-1/(k-n))
             }
             return (p)
           }
-          return (sum(sapply(jokers.min:jokers.max, innerj)))
+          return (sum(sapply(0:jokers.max, innerj)))
         }
         return (sum(sapply(t.min:t.max, innert)))
       }
@@ -228,4 +229,3 @@ first.pair.probability.with.4.suits <- function(k, ranks=13) {
   probability.of.pair.at.k <- 3/(deck-1)
   return (probability.of.no.pair.before.pair.at.k * probability.of.pair.at.k)
 }
-
