@@ -128,9 +128,9 @@ pair.probability.with.4.suits <- function(k, ranks=13) {
         t.max <- floor((n-3*q-2*d)/2) # the maximum number of triplets
         innert <- function(t) {
           s <- n-3*q-2*d-2*t
+          cards <- 2*s+3*t+4*d+4*q
           p <- 0
-          if (s >= 0 && s+t+d+q <= ranks) {
-            cards <- 2*s+3*t+4*d+4*q
+          if (s >= 0 && s+t+d+q <= ranks && cards <= k) {
             p <- (-1)^(n+1)
             p <- p * choose(ranks, s)
             p <- p * choose(ranks-s, t)
@@ -178,9 +178,9 @@ pair.probability.with.4.suits.and.pair.of.jokers <- function(k, ranks=13) {
           jokers.max <- (remaining > 0)
           innerj <- function(j) {
             s <- n-3*q-2*d-2*t-j
+            cards <- 2*s+2*j+3*t+4*d+4*q
             p <- 0
-            if (s >= 0 && s+t+d+q <= ranks) {
-              cards <- 2*s+2*j+3*t+4*d+4*q
+            if (s >= 0 && s+t+d+q <= ranks && cards <= k) {
               p <- (-1)^(n+1)
               p <- p * choose(ranks, s)
               p <- p * choose(ranks-s, t)
@@ -193,8 +193,8 @@ pair.probability.with.4.suits.and.pair.of.jokers <- function(k, ranks=13) {
               p <- p * 24^q
               p <- p / prod((deck-cards+1):deck)
               p <- p * prod((k-cards+1):(k-n))
-              #if (j==0) p <- p * (1-2*(k-cards)/(k-n)/(deck-cards))
-              #if (j==1) p <- p * (1-1/(k-n))
+              if (j==0) p <- p * (1-2*(k-cards)/(k-n)/(deck-cards))
+              if (j==1) p <- p * (1-1/(k-n))
             }
             return (p)
           }
