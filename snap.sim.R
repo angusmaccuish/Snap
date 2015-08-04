@@ -5,10 +5,12 @@
 mc.pair.probability <- function(k, ranks=13, suits=4, iterations=10000) {
   cards <- rep(1:ranks, suits)
   count <- 0
-  for (n in 1:iterations) {
+  n <- 0
+  while (n < iterations) {
     cards <- sample(cards)
     pair <- any(head(cards == c(tail(cards, -1), NA), k-1), na.rm=TRUE)
     if (pair) count <- count + 1
+    n <- n + 1
   }
   return (count/iterations)
 }
@@ -57,12 +59,14 @@ mc.pair.simulation <- function(iterations, ranks=13, suits=4, debug=FALSE) {
 mc.first.pair.probability <- function(k, ranks=13, suits=4, iterations=10000) {
   cards <- rep(1:ranks, suits)
   count <- 0
-  for (n in 1:iterations) {
+  n <- 0
+  while (n < iterations) {
     cards <- sample(cards)
     card <- match(TRUE, head(cards == c(tail(cards, -1), NA), k-1))
     if (!is.na(card) && card == (k-1)) {
       count <- count + 1
     }
+    n <- n + 1
   }
   return (count/iterations)
 }
@@ -77,7 +81,8 @@ mc.first.pair.mean.location <- function(ranks=13, suits=4, iterations=10000) {
   deck = ranks*suits
   cards <- rep(1:ranks, suits)
   sum <- 0
-  for (n in 1:iterations) {
+  n <- 0
+  while (n < iterations) {
     cards <- sample(cards)
     card <- match(TRUE, cards == c(tail(cards, -1), NA))
     if (!is.na(card)) {
@@ -86,6 +91,7 @@ mc.first.pair.mean.location <- function(ranks=13, suits=4, iterations=10000) {
       sum <- sum + first.from.left
       sum <- sum + first.from.right
     }
+    n <- n + 1
   }
   return (sum/iterations/2)
 }
