@@ -6,13 +6,15 @@ mc.pair.probability <- function(k, ranks=13, suits=4, iterations=10000) {
   cards <- rep(1:ranks, suits)
   count <- 0
   n <- 0
+  pair.exists <- function(cards, k) { return (any(head(cards == c(tail(cards, -1), NA), k-1), na.rm=TRUE)) }
   while (n < iterations) {
     cards <- sample(cards)
     pair <- any(head(cards == c(tail(cards, -1), NA), k-1), na.rm=TRUE)
-    if (pair) count <- count + 1
+    if (pair.exists(cards, k)) count <- count + 1
+    if (pair.exists(rev(cards), k)) count <- count + 1
     n <- n + 1
   }
-  return (count/iterations)
+  return (count/iterations/2)
 }
 
 
