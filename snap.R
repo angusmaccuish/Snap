@@ -115,8 +115,8 @@ first.pair.probability.with.3.suits <- function(k, ranks=13) {
 # Calculate theoretical probability of a pair occurring within the first k cards. #
 # Hardcoded for case of suits=4 case.                                             #
 ###################################################################################
-pair.probability.with.4.suits <- function(k, ranks=13) {
-  deck <- 4*ranks
+pair.probability.with.4.suits <- function(k, ranks=13, with.joker=FALSE) {
+  deck <- 4*ranks + with.joker
   outer <- function(n) {
     q.min <- 0 # TODO
     q.max <- floor(n/3) # the maximum number of quartets
@@ -223,14 +223,28 @@ pair.probability.with.4.suits.and.pair.of.jokers <- function(k, ranks=13) {
 ################################################################
 first.pair.probability.with.4.suits <- function(k, ranks=13) {
   deck <- 4*ranks
-  probability.of.no.pair.before.pair.at.k <- 0
-  if (k==2) probability.of.no.pair.before.pair.at.k <- 1
-  if (k==3) probability.of.no.pair.before.pair.at.k <- 1-2/(deck-2)
+  p <- 0
+  if (k==2) p <- 3/(deck-1)
+  if (k==3) p <- (1-2/(deck-2))*3/(deck-1)
   if (k>3) {
-    p <- 2/(deck-2)
-    q <- pair.probability.with.4.suits.and.pair.of.jokers(k-2, ranks-1) * (1-p)
-    probability.of.no.pair.before.pair.at.k <- 1-(p+q)
+	# This function represents our lack of a general algorithm to calculate
+	# the probability of a pair with an arbitrary number of jokers.
+	pair.probability.with.4.suits.and.jokers <- function(k, ranks, jokers) {
+	  if (jokers > 2) throw("Only a maximum of 2 jokers supported")
+	  p <- 0
+	  if (jokers == 0) p <- pair.probability.with.4.suits(k, ranks)
+	  if (jokers == 1) p <- pair.probability.with.4.suits(k, ranks, with.joker=TRUE)
+	  if (jokers == 2) p <- pair.probability.with.4.suits.and.pair.of.jokers(k, ranks)
+	  return (p)
+	}
+	first.pair.probability <- function(k, ranks, jokers=2) {
+	  q <- (jokers+1)/(4*ranks-3+jokers)
+	  d <- if (jokers > 0) first.pair.probability(k-1, ranks, jokers-1) else 0
+	  p <- (1-pair.probability.with.4.suits.and.jokers(k-2, ranks-1, jokers)-d) * q
+	  return (p)
+	}
+	p <- first.pair.probability(k, ranks)
   }
-  probability.of.pair.at.k <- 3/(deck-1)
-  return (probability.of.no.pair.before.pair.at.k * probability.of.pair.at.k)
+  return (p)
 }
+
