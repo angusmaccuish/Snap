@@ -90,8 +90,7 @@ mc.first.pair.mean.location <- function(ranks=13, suits=4, iterations=10000) {
     if (!is.na(card)) {
       first.from.left <- card+1
       first.from.right <- tail(deck - which(cards == c(NA, head(cards, -1))) + 2, n=1)
-      sum <- sum + first.from.left
-      sum <- sum + first.from.right
+      sum <- sum + first.from.left + first.from.right
     }
     n <- n + 1
   }
