@@ -34,55 +34,39 @@ first.pair.probability.with.2.suits <- function(k, ranks=13) {
 }
 
 
-###################################################################################
-# Calculate theoretical probability of a pair occurring within the first k cards. #
-# Hardcoded for case of suits=3 case.                                             #
-###################################################################################
-pair.probability.with.3.suits <- function(k, ranks=13) {
-  deck <- 3*ranks
-  outer <- function(n) {
-    t.min <- max(0, n-ranks) # the minimum number of triples
-    t.max <- floor(n/2) # the maximum number of triples
-    inner <- function(t) {
-      s <- n-2*t
-      cards <- 2*s+3*t
-      q <- (-1)^(n+1)
-      q <- q * choose(ranks, s)
-      q <- q * choose(ranks-s, t)
-      q <- q * 6^(s+t)
-      q <- q / prod((deck-cards+1):deck)
-      q <- q * prod((k-cards+1):(k-n))
-      return (q)
-    }
-    return (sum(sapply(t.min:t.max, inner)))
-  }
-  n.max <- floor(2*k/3)
-  p <- if (n.max > 0) sum(sapply(1:n.max, outer)) else 0
-  return (p)
+##############################################################
+# Mean location of the first pair. Namely, how many cards do #
+# we need to turn before we get a pair ?                     #
+##############################################################
+first.pair.mean.location.with.2.suits <- function(ranks) {
+  k <- 1:(2*ranks)
+  fn <- function(k) { return (first.pair.probability.with.2.suits(k, ranks)) }
+  return (sum(k * sapply(k, fn)))	
 }
 
 
 ###################################################################################
 # Calculate theoretical probability of a pair occurring within the first k cards. #
-# Conditioned on a joker having been dealt before the k^th card.                  #
-# Hardcoded for case of suits=3 case.                                             #
+# Hardcoded for case of suits=3 case. Optional joker allowed                      #
 ###################################################################################
-pair.probability.with.3.suits.given.joker.already.dealt <- function(k, ranks=13) {
-  deck <- 3*ranks
+pair.probability.with.3.suits <- function(k, ranks=13, with.joker=FALSE) {
+  deck <- 3*ranks + with.joker
   outer <- function(n) {
     t.min <- max(0, n-ranks) # the minimum number of triples
     t.max <- floor(n/2) # the maximum number of triples
     inner <- function(t) {
+      p <- 0
       s <- n-2*t
       cards <- 2*s+3*t
-      q <- (-1)^(n+1)
-      q <- q * choose(ranks, s)
-      q <- q * choose(ranks-s, t)
-      q <- q * 6^(s+t)
-      q <- q / prod((deck-cards+1):deck)
-      q <- q * prod((k-cards):(k-n))
-      q <- q * (k-n-1)/(k-n)/(k-1)
-      return (q)
+      if (s+t <= ranks && cards <= k) {
+        p <- (-1)^(n+1)
+        p <- p * choose(ranks, s)
+        p <- p * choose(ranks-s, t)
+        p <- p * 6^(s+t)
+        p <- p / prod((deck-cards+1):deck)
+        p <- p * prod((k-cards+1):(k-n))
+      }
+      return (p)
     }
     return (sum(sapply(t.min:t.max, inner)))
   }
@@ -98,16 +82,24 @@ pair.probability.with.3.suits.given.joker.already.dealt <- function(k, ranks=13)
 ################################################################
 first.pair.probability.with.3.suits <- function(k, ranks=13) {
   deck <- 3*ranks
-  probability.of.no.pair.before.pair.at.k <- 0
-  if (k==2) probability.of.no.pair.before.pair.at.k <- 1
+  p <- 0
+  if (k==2) p <- 2/(deck-1)
   if (k>2) {
-    p1 <- pair.probability.with.3.suits.given.joker.already.dealt(k-2, ranks-1) * (k-3)/(deck-2)
-    p2 <- 1/(deck-2)
-    p3 <- pair.probability.with.3.suits(k-2, ranks-1) * (deck-k)/(deck-2)
-    probability.of.no.pair.before.pair.at.k <- 1-(p1+p2+p3)
+    a <- (1-pair.probability.with.3.suits(k-3, ranks-1))*1/(deck-2)
+    p <- (1-pair.probability.with.3.suits(k-2, ranks-1, with.joker=TRUE) - a)*2/(deck-1)
   }
-  probability.of.pair.at.k <- 2/(deck-1)
-  return (probability.of.no.pair.before.pair.at.k * probability.of.pair.at.k)
+  return (p)
+}
+
+
+##############################################################
+# Mean location of the first pair. Namely, how many cards do #
+# we need to turn before we get a pair ?                     #
+##############################################################
+first.pair.mean.location.with.3.suits <- function(ranks) {
+  k <- 1:(3*ranks)
+  fn <- function(k) { return (first.pair.probability.with.3.suits(k, ranks)) }
+  return (sum(k * sapply(k, fn)))	
 }
 
 
@@ -241,3 +233,13 @@ first.pair.probability.with.4.suits <- function(k, ranks=13) {
   return (p)
 }
 
+
+##############################################################
+# Mean location of the first pair. Namely, how many cards do #
+# we need to turn before we get a pair ?                     #
+##############################################################
+first.pair.mean.location.with.4.suits <- function(ranks) {
+  k <- 1:(4*ranks)
+  fn <- function(k) { return (first.pair.probability.with.4.suits(k, ranks)) }
+  return (sum(k * sapply(k, fn)))	
+}
