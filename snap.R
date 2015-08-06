@@ -83,9 +83,8 @@ pair.probability.with.3.suits <- function(k, ranks=13, with.joker=FALSE) {
 first.pair.probability.with.3.suits <- function(k, ranks=13) {
   deck <- 3*ranks
   p <- 0
-  if (k==2) p <- 2/(deck-1)
-  if (k>2) {
-    a <- (1-pair.probability.with.3.suits(k-3, ranks-1))*1/(deck-2)
+  if (k>1) {
+    a <- if (k>2) (1-pair.probability.with.3.suits(k-3, ranks-1))*1/(deck-2) else 0
     p <- (1-pair.probability.with.3.suits(k-2, ranks-1, with.joker=TRUE) - a)*2/(deck-1)
   }
   return (p)
