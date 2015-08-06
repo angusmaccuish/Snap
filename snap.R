@@ -113,7 +113,7 @@ first.pair.probability.with.3.suits <- function(k, ranks=13) {
 
 ###################################################################################
 # Calculate theoretical probability of a pair occurring within the first k cards. #
-# Hardcoded for case of suits=4 case.                                             #
+# Hardcoded for case of suits=4 case (can include optional single joker)          #
 ###################################################################################
 pair.probability.with.4.suits <- function(k, ranks=13, with.joker=FALSE) {
   deck <- 4*ranks + with.joker
@@ -193,13 +193,6 @@ pair.probability.with.4.suits.and.pair.of.jokers <- function(k, ranks=13) {
               p <- p * 24^q
               p <- p / prod((deck-cards+1):deck)
               p <- p * prod((k-cards+1):(k-n))
-              # The following two lines were suppose to implement the condition that
-              # a Joker cannot reside at k. However, by removing these adjustments,
-              # we seem to get the right answer (or something which is very close!)
-              # for a range of different ranks. Comment out for now and try to understand later...
-              # (without these, we are calculating the pair probability with 2xJokers with no restrictions)
-              #if (j==0) p <- p * (1-2*(k-cards)/(k-n)/(deck-cards))
-              #if (j==1) p <- p * (1-1/(k-n))
             }
             return (p)
           }
