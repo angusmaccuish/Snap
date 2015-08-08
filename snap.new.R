@@ -6,7 +6,7 @@
 #  k - the depth                                                       #
 #                                                                      #
 ########################################################################
-pair.probability <- function(r, s, k) {
+pair.probability <- function(r, s, k, fn=pairs) {
   deck <- r*s
   at.least.p.pairs <- function(p) {
 	probability <- function(tuple) {
@@ -14,31 +14,51 @@ pair.probability <- function(r, s, k) {
       cards.used <- tuple[2]
       pair.permutations * prod((k-cards.used+1):(k-p)) / prod((deck-cards.used+1):deck)
 	}
-	
-	two.suits <- function(r, s, p) { c(choose(r, p) * choose(s, 2)^p * factorial(2)^p, 2*p) }
-	
-    contributions <- switch(s,
-	                        list(c(0, 0)),
-	                        list(two.suits(r, s, p)),
-	                        { 
-		                      t <- 0:floor(k/3)
-		                      f <- function(t) {
-			                    s <- p-2*t
-			                    cards <- 2*s + 3*t
-			                    if (s >=0 && (s+t) <= r && cards <= k) {
-				                  perms <- choose(r, s) * choose(r-s, t) * 6^(s+t)
-				                  c(perms, cards)
-			                    }
-			                    else 
-				                  c(0, 0)
-		                      }
-		                      lapply(t, f)
-							})
-	sapply(contributions, probability)
+	sum(sapply(fn(r, s, p), probability))
   }
 
   # Use the inclusion-exclusion principle to calculate the probability of a pair existing
   max.pairs <- floor((s-1)*k/s)
-  p <- 1:max.pairs
-  sum(sapply(p, function(p) { return ((-1)^(p+1) * at.least.p.pairs(p)) }))
+  if (max.pairs > 0) sum(sapply(1:max.pairs, function(p) { return ((-1)^(p+1) * at.least.p.pairs(p)) })) else 0
 }
+
+pairs <- function(r, s, p) {
+  one.suit <- function(r, p) { list(c(1,0)) }
+	
+  two.suits <- function(r, p) { list(c(choose(r, p) * choose(s, 2)^p * factorial(2)^p, 2*p)) }
+	
+  three.suits <- function(r, p) {
+	t.min = max(0, p-r)
+	t.max = r
+    t <- Filter(function(t) { p >= 2*t }, t.min:t.max)
+    f <- function(t) {
+      lapply(two.suits(r-t, p-2*t), function(x) { 
+        c(x[1] * choose(r, t) * choose(s, 3)^t * factorial(3)^t, x[2] + 3*t)
+      })
+    }
+    unlist(lapply(t, f), recursive=FALSE)
+  }
+	
+  four.suits <- function(r, p) {
+	q.min = max(0, p-2*r)
+	q.max = r
+	q <- Filter(function(q) { p >= 3*q }, q.min:q.max)
+	f <- function(q) {
+	  d.min = 0
+	  d.max = r-q
+	  d <- Filter(function(d) { p >= 3*q + 2*d }, d.min:d.max)
+	  f <- function(d) {
+	    lapply(three.suits(r-q-d, p-3*q-2*d), function(x) {
+		  c(x[1] * choose(r, q) * choose(s, 4)^q * factorial(4)^q * choose(r-q, d) * 3^d * factorial(2)^(2*d), x[2] + 4*q + 4*d)
+	    })	
+      }
+      unlist(lapply(d, f), recursive=FALSE)
+	}
+	unlist(lapply(q, f), recursive=FALSE)
+  }
+	
+  fn <- switch(s, one.suit, two.suits, three.suits, four.suits)
+  fn(r, p)
+}
+
+
