@@ -12,18 +12,33 @@ pair.probability <- function(r, s, k) {
 	probability <- function(tuple) {
       pair.permutations <- tuple[1]
       cards.used <- tuple[2]
-      return (pair.permutations * prod((k-cards.used+1):(k-p)) / prod((deck-cards.used+1):deck))
+      pair.permutations * prod((k-cards.used+1):(k-p)) / prod((deck-cards.used+1):deck)
 	}
-	contributions <- list(c(choose(r, p) * 2^p, 2*p)) ### This is the only 2n specific code now
-	return (sapply(contributions, probability))
+	
+	two.suits <- function(r, s, p) { c(choose(r, p) * choose(s, 2)^p * factorial(2)^p, 2*p) }
+	
+    contributions <- switch(s,
+	                        list(c(0, 0)),
+	                        list(two.suits(r, s, p)),
+	                        { 
+		                      t <- 0:floor(k/3)
+		                      f <- function(t) {
+			                    s <- p-2*t
+			                    cards <- 2*s + 3*t
+			                    if (s >=0 && (s+t) <= r && cards <= k) {
+				                  perms <- choose(r, s) * choose(r-s, t) * 6^(s+t)
+				                  c(perms, cards)
+			                    }
+			                    else 
+				                  c(0, 0)
+		                      }
+		                      lapply(t, f)
+							})
+	sapply(contributions, probability)
   }
 
   # Use the inclusion-exclusion principle to calculate the probability of a pair existing
   max.pairs <- floor((s-1)*k/s)
   p <- 1:max.pairs
-  return (sum(sapply(p, function(p) { return ((-1)^(p+1) * at.least.p.pairs(p)) })))
+  sum(sapply(p, function(p) { return ((-1)^(p+1) * at.least.p.pairs(p)) }))
 }
-
-
-# Test
-print(pair.probability(13, 2, 26))
