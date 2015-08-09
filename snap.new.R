@@ -21,8 +21,10 @@ pair.probability <- function(ranks, suits, k, jokers=0, fn=pairs) {
 }
 
 pairs <- function(ranks, suits, jokers, required.pairs) {
-  two.suits <- function(r, j, p) { 
-    list(c(choose(r, p) * choose(suits, 2)^p * factorial(2)^p, 2*p)) 
+  two.suits <- function(r, j, p) {
+	j.min = (r < p) # not enough ranks left to make p pairs
+	j.max = (p > 0 && j >= 2) # if more than 2 jokers available and pairs required
+	lapply(j.min:j.max, function(j) { c(choose(r, p-j) * choose(suits, 2)^(p-j) * factorial(2)^(p-j) * factorial(2)^j, 2*p) })
   }
 	
   three.suits <- function(r, j, p) {
