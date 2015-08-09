@@ -25,7 +25,7 @@ pairs <- function(ranks, suits, jokers, required.pairs) {
 	j.min <- (ranks < pairs) # not enough ranks left to make p pairs
 	j.max <- (pairs > 0 && jokers >= 2) # if more than 2 jokers available and pairs required
 	lapply(j.min:j.max, function(j) { 
-      c(choose(ranks, pairs-jokers) * choose(suits, 2)^(pairs-jokers) * factorial(2)^(pairs-jokers * factorial(2)^jokers, 2*pairs)
+      c(choose(ranks, pairs-j) * choose(suits, 2)^(pairs-j) * factorial(2)^(pairs-j) * factorial(2)^j, 2*pairs)
     })
   }
 	
