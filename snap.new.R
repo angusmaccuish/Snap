@@ -21,35 +21,39 @@ pair.probability <- function(ranks, suits, k, jokers=0, fn=pairs) {
 }
 
 pairs <- function(ranks, suits, jokers, required.pairs) {
-  two.suits <- function(r, j, p) {
-	j.min = (r < p) # not enough ranks left to make p pairs
-	j.max = (p > 0 && j >= 2) # if more than 2 jokers available and pairs required
-	lapply(j.min:j.max, function(j) { c(choose(r, p-j) * choose(suits, 2)^(p-j) * factorial(2)^(p-j) * factorial(2)^j, 2*p) })
+  two.suits <- function(ranks, jokers, pairs) {
+	j.min <- (ranks < pairs) # not enough ranks left to make p pairs
+	j.max <- (pairs > 0 && jokers >= 2) # if more than 2 jokers available and pairs required
+	lapply(j.min:j.max, function(j) { 
+      c(choose(ranks, pairs-jokers) * choose(suits, 2)^(pairs-jokers) * factorial(2)^(pairs-jokers * factorial(2)^jokers, 2*pairs)
+    })
   }
 	
-  three.suits <- function(r, j, p) {
-    t.min = max(0, p-r)
-    t.max = r
-    t <- Filter(function(t) { p >= 2*t }, t.min:t.max)
+  three.suits <- function(ranks, jokers, pairs) {
+    t.min <- max(0, pairs-ranks)
+    t.max <- ranks
+    t <- Filter(function(t) { pairs >= 2*t }, t.min:t.max)
     f <- function(t) {
-      lapply(two.suits(r-t, j, p-2*t), function(x) { 
-        c(x[1] * choose(r, t) * choose(suits, 3)^t * factorial(3)^t, x[2] + 3*t)
+      lapply(two.suits(ranks-t, jokers, pairs-2*t), function(x) { 
+        c(x[1] * choose(ranks, t) * choose(suits, 3)^t * factorial(3)^t, x[2] + 3*t)
       })
     }
     unlist(lapply(t, f), recursive=FALSE)
   }
 	
-  four.suits <- function(r, j, p) {
-    q.min = max(0, p-2*r)
-    q.max = r
-    q <- Filter(function(q) { p >= 3*q }, q.min:q.max)
+  four.suits <- function(ranks, jokers, pairs) {
+    q.min <- max(0, pairs-2*ranks)
+    q.max <- ranks
+    q <- Filter(function(q) { pairs >= 3*q }, q.min:q.max)
     f <- function(q) {
-      d.min = 0
-      d.max = r-q
-      d <- Filter(function(d) { p >= 3*q + 2*d }, d.min:d.max)
+      d.min <- 0
+      d.max <- ranks-q
+      d <- Filter(function(d) { pairs >= 3*q + 2*d }, d.min:d.max)
       f <- function(d) {
-        lapply(three.suits(r-q-d, j, p-3*q-2*d), function(x) {
-          c(x[1] * choose(r, q) * choose(suits, 4)^q * factorial(4)^q * choose(r-q, d) * 3^d * factorial(2)^(2*d), x[2] + 4*q + 4*d)
+        lapply(three.suits(ranks-q-d, jokers, pairs-3*q-2*d), function(x) {
+	      perms <- x[1] * choose(ranks, q) * choose(suits, 4)^q * factorial(4)^q * choose(ranks-q, d) * 3^d * factorial(2)^(2*d)
+	      cards <- x[2] + 4*q + 4*d
+          c(perms, cards)
         })	
       }
       unlist(lapply(d, f), recursive=FALSE)
