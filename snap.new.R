@@ -21,36 +21,44 @@ pair.probability <- function(ranks, suits, k, jokers=0, fn=pairs) {
 }
 
 pairs <- function(ranks, suits, jokers, required.pairs) {
-  two.suits <- function(ranks, jokers, pairs) {
-	j.min <- (ranks < pairs) # not enough ranks left to make p pairs
-	j.max <- (pairs > 0 && jokers >= 2) # if more than 2 jokers available and pairs required
-	lapply(j.min:j.max, function(j) { 
-      c(choose(ranks, pairs-j) * choose(suits, 2)^(pairs-j) * factorial(2)^(pairs-j) * factorial(2)^j, 2*pairs)
-    })
-  }
-	
-  three.suits <- function(ranks, jokers, pairs) {
-    t.min <- max(0, pairs-ranks)
-    t.max <- ranks
-    t <- Filter(function(t) { pairs >= 2*t }, t.min:t.max)
-    f <- function(t) {
-      lapply(two.suits(ranks-t, jokers, pairs-2*t), function(x) { 
-        c(x[1] * choose(ranks, t) * choose(suits, 3)^t * factorial(3)^t, x[2] + 3*t)
-      })
+  two.in.a.row <- function(ranks, jokers, pairs) {
+	f <- function(j) { 
+      list(c(choose(ranks, pairs-j) * choose(suits, 2)^(pairs-j) * factorial(2)^(pairs-j) * choose(jokers, 2)^j * factorial(2)^j, 2*pairs))
     }
-    unlist(lapply(t, f), recursive=FALSE)
+	min.joker.pairs <- (ranks < pairs)
+	max.joker.pairs <- (pairs > 0 && jokers >= 2)
+    unlist(lapply(min.joker.pairs:max.joker.pairs, f), recursive=FALSE)
   }
 	
-  four.suits <- function(ranks, jokers, pairs) {
+  three.in.a.row <- function(ranks, jokers, pairs) {
+	f <- function(j) {
+      t.min <- max(0, pairs-2*j-ranks)
+      t.max <- ranks
+      t <- Filter(function(t) { pairs >= (2*t + 2*j) }, t.min:t.max)
+      f <- function(t) {
+        lapply(two.in.a.row(ranks-t, jokers-3*j, pairs-2*t-2*j), function(x) { 
+	      perms <- x[1] * choose(ranks, t) * choose(suits, 3)^t * factorial(3)^t * choose(jokers, 3)^j * factorial(3)^j
+          cards <- x[2] + 3*t + 3*j
+          c(perms, cards)
+        })
+      }
+      unlist(lapply(t, f), recursive=FALSE)
+    }
+    min.joker.triples <- (pairs >= 2 && jokers >= 3 && 2*ranks < pairs)
+    max.joker.triples <- (pairs >= 2 && jokers >= 3) # limitation, max joker triplet=1 just now!!
+    unlist(lapply(min.joker.triples:max.joker.triples, f), recursive=FALSE)
+  }
+	
+  four.in.a.row <- function(ranks, jokers, pairs) {
     q.min <- max(0, pairs-2*ranks)
     q.max <- ranks
     q <- Filter(function(q) { pairs >= 3*q }, q.min:q.max)
     f <- function(q) {
       d.min <- 0
       d.max <- ranks-q
-      d <- Filter(function(d) { pairs >= 3*q + 2*d }, d.min:d.max)
+      d <- Filter(function(d) { pairs >= (3*q + 2*d) }, d.min:d.max)
       f <- function(d) {
-        lapply(three.suits(ranks-q-d, jokers, pairs-3*q-2*d), function(x) {
+        lapply(three.in.a.row(ranks-q-d, jokers, pairs-3*q-2*d), function(x) {
 	      perms <- x[1] * choose(ranks, q) * choose(suits, 4)^q * factorial(4)^q * choose(ranks-q, d) * 3^d * factorial(2)^(2*d)
 	      cards <- x[2] + 4*q + 4*d
           c(perms, cards)
@@ -61,7 +69,7 @@ pairs <- function(ranks, suits, jokers, required.pairs) {
     unlist(lapply(q, f), recursive=FALSE)
   }
 	
-  fn <- switch(suits, NULL, two.suits, three.suits, four.suits)
+  fn <- switch(suits, NULL, two.in.a.row, three.in.a.row, four.in.a.row)
   fn(ranks, jokers, required.pairs)
 }
 
