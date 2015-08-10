@@ -33,7 +33,7 @@ pairs <- function(suits) {
         Filter(function(j) { pairs >= j*(block.size-1) }, min.joker.blocks:max.joker.blocks)
       }
       results <- lapply(joker.blocks, function(j) {
-	    jokers.used <- j*block.size
+        jokers.used <- j*block.size
         joker.pairs <- j*(block.size-1)
         lapply(fn(ranks, jokers-jokers.used, pairs-joker.pairs, cards-jokers.used), function(x) {
           c(x[1] * choose(jokers, block.size)^j * factorial(block.size)^j, x[2] + jokers.used)
@@ -55,7 +55,7 @@ pairs <- function(suits) {
     t <- Filter(function(t) { pairs >= 2*t }, t.min:t.max)
     f <- function(t) {
       lapply(two.cards(ranks-t, jokers, pairs-2*t, cards-3*t), function(x) { 
-	    perms <- x[1] * choose(ranks, t) * choose(suits, 3)^t * factorial(3)^t
+        perms <- x[1] * choose(ranks, t) * choose(suits, 3)^t * factorial(3)^t
         cards <- x[2] + 3*t
         c(perms, cards)
       })
