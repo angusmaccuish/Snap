@@ -2,8 +2,8 @@
 # Monte Carlo simulation to determine the probability of a pair occurring #
 # within the first k cards.                                               #
 ###########################################################################
-mc.pair.probability <- function(k, ranks=13, suits=4, iterations=10000) {
-  cards <- rep(1:ranks, suits)
+mc.pair.probability <- function(k, ranks=13, suits=4, jokers=0, iterations=10000) {
+  cards <- c(rep(0, jokers), rep(1:ranks, suits))
   count <- 0
   n <- 0
   pair.exists <- function(cards, k) { return (any(head(cards == c(tail(cards, -1), NA), k-1), na.rm=TRUE)) }
@@ -22,7 +22,7 @@ mc.pair.probability <- function(k, ranks=13, suits=4, iterations=10000) {
 # Monte Carlo simulation as above but split over available cores.               #
 # Useful for calculating accurate probability for one particular set of inputs. #
 #################################################################################
-mc.pair.probability.parallel <- function(k, ranks=13, suits=4, iterations=10000) {
+mc.pair.probability.parallel <- function(k, ranks=13, suits=4, jokers=0, iterations=10000) {
   cores <- parallel::detectCores()
   if (cores > 1) {
     # split iterations between cores, with excess in final batch if required
@@ -33,7 +33,7 @@ mc.pair.probability.parallel <- function(k, ranks=13, suits=4, iterations=10000)
     # No parallelism available
     batches <- c(iterations)
   }
-  fun <- function(iterations) { return(mc.pair.probability(k, ranks, suits, iterations)) }
+  fun <- function(iterations) { return(mc.pair.probability(k, ranks, suits, jokers, iterations)) }
   results <- unlist(parallel::mclapply(batches, fun, mc.cores=cores))
   return (mean(results))
 }
@@ -46,10 +46,10 @@ mc.pair.probability.parallel <- function(k, ranks=13, suits=4, iterations=10000)
 #   results <- parallel::mclapply(k, mc.pair.simulation(iterations=100000, ranks=13, suits=2, debug=TRUE)) #
 #   plot(k, unlist(results))                                                                               #
 ############################################################################################################
-mc.pair.simulation <- function(iterations, ranks=13, suits=4, debug=FALSE) {
+mc.pair.simulation <- function(iterations, ranks=13, suits=4, jokers=0, debug=FALSE) {
   return (function(k) { 
     if (debug) print(k)
-    p <- mc.pair.probability(k, ranks, suits, iterations)
+    p <- mc.pair.probability(k, ranks, suits, jokers, iterations)
     return (p)
   })
 }
