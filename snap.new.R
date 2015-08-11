@@ -22,6 +22,26 @@ pair.probability <- function(k, ranks, suits, jokers=0, fn=pairs) {
   if (max.pairs > 0) sum(sapply(1:max.pairs, function(p) { return ((-1)^(p+1) * at.least.p.pairs(p)) })) else 0
 }
 
+first.pair.probability <- function(k, ranks, suits) {
+  if (k < 2)
+    0
+  else {
+	# m is the number of cards making up the given pair at k (ie 2 if first pair in pack)
+	# When called recursively, this function returns the probability that a pair precedes all the
+	# pairs in a block of m cards of the same suit, where the block terminates at k.
+    probability.of.pair.before <- function(k, ranks, suits, m=2) {
+      if (k <= m)
+        0
+      else if (m == suits)
+        pair.probability(k-suits, ranks-1, suits)
+      else
+        pair.probability(k-m, ranks-1, suits, suits-m) + 
+          (1-probability.of.pair.before(k, ranks, suits, m+1))*(suits-m)/(ranks*suits-m)
+    }
+    (1-probability.of.pair.before(k, ranks, suits))*(suits-1)/(ranks*suits-1)
+  }
+}
+
 pairs <- function(suits) {
   with.jokers <- function(block.size, fn) {
     function(ranks, jokers, pairs, cards) {
