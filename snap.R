@@ -61,7 +61,7 @@ pairs <- function(suits) {
       joker.blocks <- {
         can.accomodate.jokers <- (pairs >= block.size-1 && jokers >= block.size && cards >= block.size)
         max.pairs.possible.with.non.jokers <- ranks*(block.size-1)
-        min.joker.blocks <- (can.accomodate.jokers && max.pairs.possible.with.non.jokers < pairs) # TODO
+        min.joker.blocks <- (can.accomodate.jokers && max.pairs.possible.with.non.jokers < pairs)
         max.joker.blocks <- if (can.accomodate.jokers) floor(min(jokers, cards)/block.size) else 0
         Filter(function(j) { pairs >= j*(block.size-1) }, min.joker.blocks:max.joker.blocks)
       }
@@ -83,7 +83,7 @@ pairs <- function(suits) {
   })
 	
   three.cards <- with.jokers(3, function(ranks, jokers, pairs, cards) {
-    t.min <- max(0, pairs-ranks) # this is only true for whole pack, need to consider k !
+    t.min <- max(0, pairs-ranks) # this is only true for whole pack, need to consider 'cards' !
     t.max <- ranks
     t <- Filter(function(t) { pairs >= 2*t }, t.min:t.max)
     f <- function(t) {
@@ -97,7 +97,7 @@ pairs <- function(suits) {
   })
 	
   four.cards <- with.jokers(4, function(ranks, jokers, pairs, cards) {
-    q.min <- max(0, pairs-2*ranks)
+    q.min <- max(0, pairs-2*ranks) # this is only true for whole pack, need to consider 'cards' !
     q.max <- ranks
     q <- Filter(function(q) { pairs >= 3*q }, q.min:q.max)
     f <- function(q) {
