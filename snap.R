@@ -1,244 +1,122 @@
-###################################################################################
-# Calculate theoretical probability of a pair occurring within the first k cards. #
-# Hardcoded for case of suits=2 case.                                             #
-###################################################################################
-pair.probability.with.2.suits <- function(k, ranks=13) {
-  deck <- 2*ranks
-  f <- function(s) {
-    cards <- 2*s
-    p <- (-1)^(s+1)
-    p <- p * choose(ranks, s)
-    p <- p * 2^s
-    p <- p / prod((deck-cards+1):deck)
-    p <- p * prod((k-cards+1):(k-s))
-    return (p)
-  }
-  max <- floor(k/2)
-  p <- if (max > 0) sum(sapply(1:max, f)) else 0
-  return (p)
-}
-
-
-################################################################
-# (Unconditional) Probability that the first pair occurs at k. #
-# Hardcoded for case of suits=2 case.                          #
-################################################################
-first.pair.probability.with.2.suits <- function(k, ranks=13) {
-  probability.of.no.pair.before.pair.at.k <- 0
-  if (k==2) probability.of.no.pair.before.pair.at.k <- 1
-  if (k>2) {
-    probability.of.no.pair.before.pair.at.k <- 1 - pair.probability.with.2.suits(k-2, ranks-1)
-  }
-  probability.of.pair.at.k <- 1/(2*ranks-1)
-  return (probability.of.no.pair.before.pair.at.k * probability.of.pair.at.k)
-}
-
-
-##############################################################
-# Mean location of the first pair. Namely, how many cards do #
-# we need to turn before we get a pair ?                     #
-##############################################################
-first.pair.mean.location.with.2.suits <- function(ranks) {
-  k <- 1:(2*ranks)
-  fn <- function(k) { return (first.pair.probability.with.2.suits(k, ranks)) }
-  return (sum(k * sapply(k, fn)))	
-}
-
-
-###################################################################################
-# Calculate theoretical probability of a pair occurring within the first k cards. #
-# Hardcoded for case of suits=3 case. Optional joker allowed                      #
-###################################################################################
-pair.probability.with.3.suits <- function(k, ranks=13, with.joker=FALSE) {
-  deck <- 3*ranks + with.joker
-  outer <- function(n) {
-    t.min <- max(0, n-ranks) # the minimum number of triples
-    t.max <- floor(n/2) # the maximum number of triples
-    inner <- function(t) {
-      p <- 0
-      s <- n-2*t
-      cards <- 2*s+3*t
-      if (s+t <= ranks && cards <= k) {
-        p <- (-1)^(n+1)
-        p <- p * choose(ranks, s)
-        p <- p * choose(ranks-s, t)
-        p <- p * 6^(s+t)
-        p <- p / prod((deck-cards+1):deck)
-        p <- p * prod((k-cards+1):(k-n))
-      }
-      return (p)
+#
+#  Calculate the probability of a pair occurring in the first k cards
+#  k - the depth
+#
+pair.probability <- function(k, ranks, suits, jokers=0, fn=pairs) {
+  if (jokers >= suits) stop("Jokers must be less than suits")
+  deck <- ranks*suits + jokers
+  at.least.p.pairs <- function(p) {
+    probability <- function(tuple) {
+      pair.permutations <- tuple[1]
+      cards.used <- tuple[2]
+      pair.permutations * prod((k-cards.used+1):(k-p)) / prod((deck-cards.used+1):deck)
     }
-    return (sum(sapply(t.min:t.max, inner)))
+    perms <- fn(suits)(ranks, jokers, p, k)
+    sum(sapply(perms, probability))
   }
-  n.max <- floor(2*k/3)
-  p <- if (n.max > 0) sum(sapply(1:n.max, outer)) else 0
-  return (p)
+
+  # Use the inclusion-exclusion principle to calculate the probability of a pair existing
+  max.pairs <- floor((suits-1)*k/suits)
+  if (max.pairs > 0) sum(sapply(1:max.pairs, function(p) { return ((-1)^(p+1) * at.least.p.pairs(p)) })) else 0
 }
 
 
-################################################################
-# (Unconditional) Probability that the first pair occurs at k. #
-# Hardcoded for case of suits=3 case.                          #
-################################################################
-first.pair.probability.with.3.suits <- function(k, ranks=13) {
-  deck <- 3*ranks
-  p <- 0
-  if (k>1) {
-    a <- if (k>2) (1-pair.probability.with.3.suits(k-3, ranks-1))*1/(deck-2) else 0
-    p <- (1-pair.probability.with.3.suits(k-2, ranks-1, with.joker=TRUE) - a)*2/(deck-1)
-  }
-  return (p)
-}
-
-
-##############################################################
-# Mean location of the first pair. Namely, how many cards do #
-# we need to turn before we get a pair ?                     #
-##############################################################
-first.pair.mean.location.with.3.suits <- function(ranks) {
-  k <- 1:(3*ranks)
-  fn <- function(k) { return (first.pair.probability.with.3.suits(k, ranks)) }
-  return (sum(k * sapply(k, fn)))	
-}
-
-
-###################################################################################
-# Calculate theoretical probability of a pair occurring within the first k cards. #
-# Hardcoded for case of suits=4 case (can include optional single joker)          #
-###################################################################################
-pair.probability.with.4.suits <- function(k, ranks=13, with.joker=FALSE) {
-  deck <- 4*ranks + with.joker
-  outer <- function(n) {
-    q.min <- 0 # TODO
-    q.max <- floor(n/3) # the maximum number of quartets
-    innerq <- function(q) {
-      d.min <- 0 # TODO
-      d.max <- floor((n-3*q)/2) # the maximum number of doublets
-      innerd <- function(d) {
-        t.min <- 0 # TODO
-        t.max <- floor((n-3*q-2*d)/2) # the maximum number of triplets
-        innert <- function(t) {
-          s <- n-3*q-2*d-2*t
-          cards <- 2*s+3*t+4*d+4*q
-          p <- 0
-          if (s >= 0 && s+t+d+q <= ranks && cards <= k) {
-            p <- (-1)^(n+1)
-            p <- p * choose(ranks, s)
-            p <- p * choose(ranks-s, t)
-            p <- p * choose(ranks-s-t, d)
-            p <- p * choose(ranks-s-t-d, q)
-            p <- p * 12^s
-            p <- p * 24^t
-            p <- p * 12^d
-            p <- p * 24^q
-            p <- p / prod((deck-cards+1):deck)
-            p <- p * prod((k-cards+1):(k-n))
-          }
-          return (p)
-        }
-        return (sum(sapply(t.min:t.max, innert)))
-      }
-      return (sum(sapply(d.min:d.max, innerd)))
+#
+#  Calculate the probability of the first pair occurring at k
+#  k - the location of the first pair
+#
+first.pair.probability <- function(k, ranks, suits) {
+  if (k < 2)
+    0
+  else {
+	# m is the number of cards making up the given pair at k (ie 2 if first pair in pack)
+	# When called recursively, this function returns the probability that a pair precedes all the
+	# pairs in a block of m cards of the same suit, where the block terminates at k.
+    probability.of.pair.before <- function(k, ranks, suits, m=2) {
+      if (k <= m)
+        0
+      else if (m == suits)
+        pair.probability(k-suits, ranks-1, suits)
+      else
+        pair.probability(k-m, ranks-1, suits, suits-m) + 
+          (1-probability.of.pair.before(k, ranks, suits, m+1))*(suits-m)/(ranks*suits-m)
     }
-    return (sum(sapply(q.min:q.max, innerq)))
+    (1-probability.of.pair.before(k, ranks, suits))*(suits-1)/(ranks*suits-1)
   }
-  n.max <- floor(3*k/4)
-  p <- if (n.max > 0) sum(sapply(1:n.max, outer)) else 0
-  return (p)
 }
 
 
-###################################################################################
-# Calculate theoretical probability of a pair occurring within the first k cards. #
-# In addition to the standard deck, 2 jokers are included (which can pair up)     #
-# Hardcoded for case of suits=4 case.                                             #
-###################################################################################
-pair.probability.with.4.suits.and.pair.of.jokers <- function(k, ranks=13) {
-  deck <- 4*ranks + 2
-  outer <- function(n) {
-    q.min <- 0
-    q.max <- floor(n/3) # the maximum number of quartets
-    innerq <- function(q) {
+#
+#  Calculate the mean location of the first pair
+#
+first.pair.mean.location <- function(ranks, suits) {
+  k <- 1:(ranks*suits)
+  return (sum(k * sapply(k, function(k) { first.pair.probability(k, ranks, suits) })))	
+}
+
+
+pairs <- function(suits) {
+  with.jokers <- function(block.size, fn) {
+    function(ranks, jokers, pairs, cards) {
+      joker.blocks <- {
+        can.accomodate.jokers <- (pairs >= block.size-1 && jokers >= block.size && cards >= block.size)
+        max.pairs.possible.with.non.jokers <- ranks*(block.size-1)
+        min.joker.blocks <- (can.accomodate.jokers && max.pairs.possible.with.non.jokers < pairs) # TODO
+        max.joker.blocks <- if (can.accomodate.jokers) floor(min(jokers, cards)/block.size) else 0
+        Filter(function(j) { pairs >= j*(block.size-1) }, min.joker.blocks:max.joker.blocks)
+      }
+      results <- lapply(joker.blocks, function(j) {
+        jokers.used <- j*block.size
+        joker.pairs <- j*(block.size-1)
+        lapply(fn(ranks, jokers-jokers.used, pairs-joker.pairs, cards-jokers.used), function(x) {
+          c(x[1] * choose(jokers, block.size)^j * factorial(block.size)^j, x[2] + jokers.used)
+        })
+      })
+      unlist(results, recursive=FALSE)
+    }
+  }
+
+  two.cards <- with.jokers(2, function(ranks, jokers, pairs, cards) {
+    perms <- choose(ranks, pairs) * choose(suits, 2)^pairs * factorial(2)^pairs
+    cards <- 2*pairs
+    list(c(perms, cards))
+  })
+	
+  three.cards <- with.jokers(3, function(ranks, jokers, pairs, cards) {
+    t.min <- max(0, pairs-ranks) # this is only true for whole pack, need to consider k !
+    t.max <- ranks
+    t <- Filter(function(t) { pairs >= 2*t }, t.min:t.max)
+    f <- function(t) {
+      lapply(two.cards(ranks-t, jokers, pairs-2*t, cards-3*t), function(x) { 
+        perms <- x[1] * choose(ranks, t) * choose(suits, 3)^t * factorial(3)^t
+        cards <- x[2] + 3*t
+        c(perms, cards)
+      })
+    }
+    unlist(lapply(t, f), recursive=FALSE)
+  })
+	
+  four.cards <- with.jokers(4, function(ranks, jokers, pairs, cards) {
+    q.min <- max(0, pairs-2*ranks)
+    q.max <- ranks
+    q <- Filter(function(q) { pairs >= 3*q }, q.min:q.max)
+    f <- function(q) {
       d.min <- 0
-      d.max <- floor((n-3*q)/2) # the maximum number of doublets
-      innerd <- function(d) {
-        t.min <- 0
-        t.max <- floor((n-3*q-2*d)/2) # the maximum number of triplets
-        innert <- function(t) {
-          remaining <- n-3*q-2*d-2*t
-          jokers.max <- (remaining > 0)
-          innerj <- function(j) {
-            s <- n-3*q-2*d-2*t-j
-            cards <- 2*s+2*j+3*t+4*d+4*q
-            p <- 0
-            if (s >= 0 && s+t+d+q <= ranks && cards <= k) {
-              p <- (-1)^(n+1)
-              p <- p * choose(ranks, s)
-              p <- p * choose(ranks-s, t)
-              p <- p * choose(ranks-s-t, d)
-              p <- p * choose(ranks-s-t-d, q)
-              p <- p * 2^j
-              p <- p * 12^s
-              p <- p * 24^t
-              p <- p * 12^d
-              p <- p * 24^q
-              p <- p / prod((deck-cards+1):deck)
-              p <- p * prod((k-cards+1):(k-n))
-            }
-            return (p)
-          }
-          return (sum(sapply(0:jokers.max, innerj)))
-        }
-        return (sum(sapply(t.min:t.max, innert)))
+      d.max <- ranks-q
+      d <- Filter(function(d) { pairs >= (3*q + 2*d) }, d.min:d.max)
+      f <- function(d) {
+        lapply(three.cards(ranks-q-d, jokers, pairs-3*q-2*d, cards-4*q-4*d), function(x) {
+	      perms <- x[1] * choose(ranks, q) * choose(suits, 4)^q * factorial(4)^q * choose(ranks-q, d) * 3^d * factorial(2)^(2*d)
+	      cards <- x[2] + 4*q + 4*d
+          c(perms, cards)
+        })	
       }
-      return (sum(sapply(d.min:d.max, innerd)))
+      unlist(lapply(d, f), recursive=FALSE)
     }
-    return (sum(sapply(q.min:q.max, innerq)))
-  }
-  n.max <- floor(3*k/4)
-  p <- if (n.max > 0) sum(sapply(1:n.max, outer)) else 0
-  return (p)
+    unlist(lapply(q, f), recursive=FALSE)
+  })
+	
+  switch(suits, NULL, two.cards, three.cards, four.cards)
 }
 
 
-################################################################
-# (Unconditional) Probability that the first pair occurs at k. #
-# Hardcoded for case of suits=4 case.                          #
-################################################################
-first.pair.probability.with.4.suits <- function(k, ranks=13) {
-  deck <- 4*ranks
-  p <- 0
-  if (k==2) p <- 3/(deck-1)
-  if (k==3) p <- (1-2/(deck-2))*3/(deck-1)
-  if (k>3) {
-	# This function represents our lack of a general algorithm to calculate
-	# the probability of a pair with an arbitrary number of jokers.
-	pair.probability.with.4.suits.and.jokers <- function(k, ranks, jokers) {
-	  if (jokers > 2) throw("Only a maximum of 2 jokers supported")
-	  p <- 0
-	  if (jokers == 0) p <- pair.probability.with.4.suits(k, ranks)
-	  if (jokers == 1) p <- pair.probability.with.4.suits(k, ranks, with.joker=TRUE)
-	  if (jokers == 2) p <- pair.probability.with.4.suits.and.pair.of.jokers(k, ranks)
-	  return (p)
-	}
-	first.pair.probability <- function(k, ranks, jokers=2) {
-	  q <- (jokers+1)/(4*ranks-3+jokers)
-	  d <- if (jokers > 0) first.pair.probability(k-1, ranks, jokers-1) else 0
-	  p <- (1-pair.probability.with.4.suits.and.jokers(k-2, ranks-1, jokers)-d) * q
-	  return (p)
-	}
-	p <- first.pair.probability(k, ranks)
-  }
-  return (p)
-}
-
-
-##############################################################
-# Mean location of the first pair. Namely, how many cards do #
-# we need to turn before we get a pair ?                     #
-##############################################################
-first.pair.mean.location.with.4.suits <- function(ranks) {
-  k <- 1:(4*ranks)
-  fn <- function(k) { return (first.pair.probability.with.4.suits(k, ranks)) }
-  return (sum(k * sapply(k, fn)))	
-}
