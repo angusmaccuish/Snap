@@ -22,6 +22,7 @@ pair.probability <- function(k, ranks, suits, jokers=0, fn=pairs) {
   if (max.pairs > 0) sum(sapply(1:max.pairs, function(p) { return ((-1)^(p+1) * at.least.p.pairs(p)) })) else 0
 }
 
+
 first.pair.probability <- function(k, ranks, suits) {
   if (k < 2)
     0
@@ -41,6 +42,13 @@ first.pair.probability <- function(k, ranks, suits) {
     (1-probability.of.pair.before(k, ranks, suits))*(suits-1)/(ranks*suits-1)
   }
 }
+
+
+first.pair.mean.location <- function(ranks, suits) {
+  k <- 1:(ranks*suits)
+  return (sum(k * sapply(k, function(k) { first.pair.probability(k, ranks, suits) })))	
+}
+
 
 pairs <- function(suits) {
   with.jokers <- function(block.size, fn) {
