@@ -1,9 +1,7 @@
-########################################################################
-#                                                                      #
-#  Calculate the probability of a pair occurring in the first k cards  #
-#  k - the depth                                                       #
-#                                                                      #
-########################################################################
+#
+#  Calculate the probability of a pair occurring in the first k cards
+#  k - the depth
+#
 pair.probability <- function(k, ranks, suits, jokers=0, fn=pairs) {
   if (jokers >= suits) stop("Jokers must be less than suits")
   deck <- ranks*suits + jokers
@@ -23,6 +21,10 @@ pair.probability <- function(k, ranks, suits, jokers=0, fn=pairs) {
 }
 
 
+#
+#  Calculate the probability of the first pair occurring at k
+#  k - the location of the first pair
+#
 first.pair.probability <- function(k, ranks, suits) {
   if (k < 2)
     0
@@ -44,6 +46,9 @@ first.pair.probability <- function(k, ranks, suits) {
 }
 
 
+#
+#  Calculate the mean location of the first pair
+#
 first.pair.mean.location <- function(ranks, suits) {
   k <- 1:(ranks*suits)
   return (sum(k * sapply(k, function(k) { first.pair.probability(k, ranks, suits) })))	
