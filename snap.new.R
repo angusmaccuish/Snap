@@ -24,17 +24,23 @@ permutations <- function(ranks, suits, ranks.used, blocks) {
   block.cards <- sum(blocks)
   if (length(blocks) == 1)
     choose(ranks, ranks.used) * prod((suits-block.cards+1):suits)^ranks.used
+  else if (sum(blocks) == 4) # (2,2)
+    choose(ranks, ranks.used) * 12^ranks.used
+  else if (sum(blocks) == 5) # (2,3)
+    choose(ranks, ranks.used) * 120^ranks.used
   else
-    choose(ranks, ranks.used) * 12^ranks.used # hard code 2 pair (2,2) case for now
+    stop("Unsupported suits!")
 }
 
 
 next.blocks <- function(blocks) {
   block.cards <- sum(blocks)
   if (length(blocks) > 1 || block.cards < 4)
-    c(block.cards-1) # either single block of 3 cards or less, or a collection of blocks
+    list(c(block.cards-1)) # either single block of 3 cards or less, or a collection of blocks
   else # hard-code our only supported case so far: a 4 card monolithic block (4) is followed by 2 pairs (2,2)
-    if (block.cards == 4) c(2,2) else stop("Don't support more than 4 suits right now!")
+    if (block.cards == 4) list(c(2,2)) 
+    else if (block.cards == 5) list(c(2,3))
+    else stop("Don't support more than 5 suits right now!")
 }
 
 
@@ -50,7 +56,10 @@ f <- with.jokers(function(ranks, suits, jokers, pairs, cards, blocks=c(suits)) {
     results <- lapply(n, function(n) {
 	  pairs.created <- n*block.pairs
 	  cards.used <- n*block.cards
-      others <- f(ranks-n, suits, jokers, pairs-pairs.created, cards-cards.used, next.blocks(blocks))
+	  others <- unlist(
+		lapply(next.blocks(blocks), function(blocks) f(ranks-n, suits, jokers, pairs-pairs.created, cards-cards.used, blocks)),
+        recursive=FALSE
+      )
       lapply(others, function(x) c(x[1] * permutations(ranks, suits, n, blocks), x[2] + cards.used))
     })
     unlist(results, recursive=FALSE)
@@ -110,5 +119,5 @@ first.pair.probability <- function(k, ranks, suits) {
 #
 first.pair.mean.location <- function(ranks, suits) {
   k <- 1:(ranks*suits)
-  return (sum(k * sapply(k, function(k) { first.pair.probability(k, ranks, suits) })))	
+  return (sum(k * sapply(k, function(k) first.pair.probability(k, ranks, suits))))	
 }
