@@ -37,7 +37,7 @@ next.blocks <- function(blocks) {
   block.cards <- sum(blocks)
   if (length(blocks) > 1 || block.cards < 4)
     list(c(block.cards-1)) # either single block of 3 cards or less, or a collection of blocks
-  else # hard-code our only supported case so far: a 4 card monolithic block (4) is followed by 2 pairs (2,2)
+  else
     if (block.cards == 4) list(c(2,2)) 
     else if (block.cards == 5) list(c(2,3))
     else stop("Don't support more than 5 suits right now!")
