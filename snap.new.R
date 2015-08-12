@@ -44,7 +44,7 @@ f <- with.jokers(function(ranks, suits, jokers, pairs, cards, blocks=c(suits)) {
     list(c(1,0))
   else {
     block.pairs <- sum(sapply(blocks, function(n) (n-1)))
-    min.blocks <- max(0, pairs-ranks*(block.pairs-1))
+    min.blocks <- max(0, pairs-ranks*(block.cards-2))
     max.blocks <- ranks
     n = Filter(function(n) (pairs >= n*block.pairs && n*block.cards <= cards), min.blocks:max.blocks)
     results <- lapply(n, function(n) {
