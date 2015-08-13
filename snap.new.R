@@ -21,14 +21,14 @@ with.jokers <- function(fn) {
 
 
 permutations <- function(ranks, suits, ranks.used, blocks) {
-  block.cards <- sum(blocks)
-  if (length(blocks) == 1)
-    choose(ranks, ranks.used) * prod((suits-block.cards+1):suits)^ranks.used
-  else if (length(blocks) == 2)
-    choose(ranks, ranks.used) * 
-      (choose(suits, blocks[1]) * choose(suits-blocks[1], blocks[2]) * factorial(blocks[1]) * factorial(blocks[2]) / 2)^ranks.used
-  else
-    stop("Unsupported suits!")
+  f <- function(acc, n) {
+    existing.perms <- acc[1]
+    suit.cards.remaining <- acc[2]
+    new.perms <- prod((suit.cards.remaining-n+1):suit.cards.remaining)
+    c(existing.perms * new.perms, suit.cards.remaining-n)
+  }
+  divisor <- factorial(length(blocks)) # only for blocks with identical sizes... TODO
+  choose(ranks, ranks.used) * (Reduce(f, blocks, c(1, suits))[1] / divisor)^ranks.used 
 }
 
 
