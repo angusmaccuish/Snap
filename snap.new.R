@@ -24,10 +24,9 @@ permutations <- function(ranks, suits, ranks.used, blocks) {
   block.cards <- sum(blocks)
   if (length(blocks) == 1)
     choose(ranks, ranks.used) * prod((suits-block.cards+1):suits)^ranks.used
-  else if (sum(blocks) == 4) # (2,2)
-    choose(ranks, ranks.used) * 12^ranks.used
-  else if (sum(blocks) == 5) # (2,3)
-    choose(ranks, ranks.used) * 120^ranks.used
+  else if (length(blocks) == 2)
+    choose(ranks, ranks.used) * 
+      (choose(suits, blocks[1]) * choose(suits-blocks[1], blocks[2]) * factorial(blocks[1]) * factorial(blocks[2]) / 2)^ranks.used
   else
     stop("Unsupported suits!")
 }
