@@ -20,15 +20,15 @@ with.jokers <- function(fn) {
 }
 
 
-permutations <- function(ranks, suits, ranks.used, blocks) {
+block.permutations <- function(ranks, suits, ranks.used, blocks) {
   f <- function(acc, n) {
     existing.perms <- acc[1]
     suit.cards.remaining <- acc[2]
     new.perms <- prod((suit.cards.remaining-n+1):suit.cards.remaining)
     c(existing.perms * new.perms, suit.cards.remaining-n)
   }
-  divisor <- prod(sapply(table(blocks), factorial))
-  choose(ranks, ranks.used) * (Reduce(f, blocks, c(1, suits))[1] / divisor)^ranks.used 
+  degeneracy <- prod(sapply(table(blocks), factorial))
+  choose(ranks, ranks.used) * (Reduce(f, blocks, c(1, suits))[1] / degeneracy)^ranks.used 
 }
 
 
@@ -60,7 +60,7 @@ f <- with.jokers(function(ranks, suits, jokers, pairs, cards, blocks=c(suits)) {
 		lapply(next.blocks(blocks), function(blocks) f(ranks-n, suits, jokers, pairs-pairs.created, cards-cards.used, blocks)),
         recursive=FALSE
       )
-      lapply(others, function(x) c(x[1] * permutations(ranks, suits, n, blocks), x[2] + cards.used))
+      lapply(others, function(x) c(x[1] * block.permutations(ranks, suits, n, blocks), x[2] + cards.used))
     })
     unlist(results, recursive=FALSE)
   }
@@ -120,4 +120,24 @@ first.pair.probability <- function(k, ranks, suits) {
 first.pair.mean.location <- function(ranks, suits) {
   k <- 1:(ranks*suits)
   return (sum(k * sapply(k, function(k) first.pair.probability(k, ranks, suits))))	
+}
+
+
+#
+#  Calculate the mean location of the first pair, using all available cores
+#
+first.pair.mean.location.parallel <- function(ranks, suits) {
+  slice <- function(x,n) {
+    N <- length(x)
+    lapply(seq(1,N,n), function(i) x[i:min(i+n-1,N)])
+  }
+  cores <- parallel::detectCores()
+  k <- 1:(ranks*suits)
+  batches <- slice(k, cores)
+  fun <- function(k) {
+    print(k)
+    sum(k * sapply(k, function(k) first.pair.probability(k, ranks, suits)))
+  }
+  results <- unlist(parallel::mclapply(batches, fun, mc.cores=cores))
+  sum(results)
 }
