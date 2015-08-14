@@ -131,9 +131,9 @@ first.pair.mean.location.parallel <- function(ranks, suits) {
     N <- length(x)
     lapply(seq(1,N,n), function(i) x[i:min(i+n-1,N)])
   }
+  cards <- ranks*suits
   cores <- parallel::detectCores()
-  k <- 1:(ranks*suits)
-  batches <- slice(k, cores)
+  batches <- slice(1:cards, floor((cards+1)/cores))
   fun <- function(k) {
     print(k)
     sum(k * sapply(k, function(k) first.pair.probability(k, ranks, suits)))
