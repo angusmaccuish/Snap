@@ -93,7 +93,7 @@ mc.first.pair.mean.location <- function(ranks=13, suits=4, iterations=10000) {
       sum <- sum + first.from.left + first.from.right
     }
     n <- n + 1
-    if (n %% 10000 == 0) print(sum/n/2)
+    if (n %% 100000 == 0) print(c(sum/n/2, 15/sqrt(n)))
   }
   return (sum/iterations/2)
 }
