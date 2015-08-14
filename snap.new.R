@@ -27,7 +27,7 @@ permutations <- function(ranks, suits, ranks.used, blocks) {
     new.perms <- prod((suit.cards.remaining-n+1):suit.cards.remaining)
     c(existing.perms * new.perms, suit.cards.remaining-n)
   }
-  divisor <- factorial(length(blocks)) # only for blocks with identical sizes... TODO
+  divisor <- prod(sapply(table(blocks), factorial))
   choose(ranks, ranks.used) * (Reduce(f, blocks, c(1, suits))[1] / divisor)^ranks.used 
 }
 
@@ -39,7 +39,8 @@ next.blocks <- function(blocks) {
   else
     if (block.cards == 4) list(c(2,2)) 
     else if (block.cards == 5) list(c(2,3))
-    else stop("Don't support more than 5 suits right now!")
+    else if (block.cards == 6) list(c(2,4), c(3,3), c(2,2,2))
+    else stop("Don't support more than 6 suits right now!")
 }
 
 
