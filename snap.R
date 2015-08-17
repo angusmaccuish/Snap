@@ -1,5 +1,5 @@
 with.jokers <- function(fn) {
-  function(ranks, suits, jokers, pairs, cards, blocks=c(suits)) {
+  function(ranks, suits, jokers, pairs, cards, blocks) {
     block.size <- sum(blocks)
     joker.blocks <- {
       can.accomodate.jokers <- (pairs >= block.size-1 && jokers >= block.size && cards >= block.size && block.size > 1)
@@ -21,14 +21,18 @@ with.jokers <- function(fn) {
 
 
 block.permutations <- function(ranks, suits, ranks.used, blocks) {
-  f <- function(acc, n) {
-    existing.perms <- acc[1]
-    suit.cards.remaining <- acc[2]
-    new.perms <- prod((suit.cards.remaining-n+1):suit.cards.remaining)
-    c(existing.perms * new.perms, suit.cards.remaining-n)
+  if (ranks.used == 0)
+    1
+  else {
+    f <- function(acc, n) {
+      existing.perms <- acc[1]
+      suit.cards.remaining <- acc[2]
+      new.perms <- prod((suit.cards.remaining-n+1):suit.cards.remaining)
+      c(existing.perms * new.perms, suit.cards.remaining-n)
+    }
+    degeneracy <- prod(sapply(table(blocks), factorial))
+    choose(ranks, ranks.used) * (Reduce(f, blocks, c(1, suits))[1] / degeneracy)^ranks.used
   }
-  degeneracy <- prod(sapply(table(blocks), factorial))
-  choose(ranks, ranks.used) * (Reduce(f, blocks, c(1, suits))[1] / degeneracy)^ranks.used 
 }
 
 
@@ -44,7 +48,7 @@ next.blocks <- function(blocks) {
 }
 
 
-f <- with.jokers(function(ranks, suits, jokers, pairs, cards, blocks=c(suits)) {
+f <- with.jokers(function(ranks, suits, jokers, pairs, cards, blocks) {
   block.cards <- sum(blocks)
   if (block.cards == 1) 
     list(c(1,0))
@@ -79,7 +83,7 @@ pair.probability <- function(k, ranks, suits, jokers=0) {
       cards.used <- tuple[2]
       pair.permutations * prod((k-cards.used+1):(k-p)) / prod((deck-cards.used+1):deck)
     }
-    perms <- f(ranks, suits, jokers, p, k)
+    perms <- f(ranks, suits, jokers, p, k, blocks=min(suits, k))
     sum(sapply(perms, probability))
   }
 
@@ -94,7 +98,6 @@ pair.probability <- function(k, ranks, suits, jokers=0) {
 #  k - the location of the first pair
 #
 first.pair.probability <- function(k, ranks, suits) {
-  print(k)
   if (k < 2)
     0
   else {
