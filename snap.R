@@ -39,11 +39,11 @@ block.permutations <- function(ranks, suits, ranks.used, blocks) {
 next.blocks <- function(blocks) {
   block.cards <- sum(blocks)
   if (length(blocks) > 1 || block.cards < 4)
-    list(c(block.cards-1)) # either single block of 3 cards or less, or a collection of blocks
+    c(block.cards-1) # either single block of 3 cards or less, or a collection of blocks
   else
-    if (block.cards == 4) list(c(2,2)) 
-    else if (block.cards == 5) list(c(2,3))
-    else if (block.cards == 6) list(c(2,4), c(3,3), c(2,2,2))
+    if (block.cards == 4) c(2,2)
+    else if (block.cards == 5) c(2,3)
+    else if (block.cards == 6) c(3,3)
     else stop("Don't support more than 6 suits right now!")
 }
 
@@ -60,10 +60,7 @@ f <- with.jokers(function(ranks, suits, jokers, pairs, cards, blocks) {
     results <- lapply(n, function(n) {
 	  pairs.created <- n*block.pairs
 	  cards.used <- n*block.cards
-	  others <- unlist(
-		lapply(next.blocks(blocks), function(blocks) f(ranks-n, suits, jokers, pairs-pairs.created, cards-cards.used, blocks)),
-        recursive=FALSE
-      )
+	  others <- f(ranks-n, suits, jokers, pairs-pairs.created, cards-cards.used, next.blocks(blocks))
       lapply(others, function(x) c(x[1] * block.permutations(ranks, suits, n, blocks), x[2] + cards.used))
     })
     unlist(results, recursive=FALSE)
