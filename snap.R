@@ -37,14 +37,31 @@ block.permutations <- function(ranks, suits, ranks.used, blocks) {
 
 
 next.blocks <- function(blocks) {
-  block.cards <- sum(blocks)
-  if (length(blocks) > 1 || block.cards < 4)
-    c(block.cards-1) # either single block of 3 cards or less, or a collection of blocks
-  else
-    if (block.cards == 4) c(2,2)
-    else if (block.cards == 5) c(2,3)
-    else if (block.cards == 6) c(3,3)
-    else stop("Don't support more than 6 suits right now!")
+  total <- sum(blocks)
+  bigger.than.two = Filter(function(n) n>2, blocks)
+  # If total cards < 4, we can't split into separate groups of pairs, already atomic.
+  # If no cards are > 2, or only one is and it's 3, we cannot split further.
+  # If we cannot split further, jump down to the next group size.
+  if (total < 4 || length(bigger.than.two) == 0 || (length(bigger.than.two) == 1 && bigger.than.two[1] == 3)) 
+    total - 1
+  else {
+    # Strategy: try and split into 2 halves first, then reduce size of first group until it terminates at 2.
+    # Apply this policy recursively to generate successive blocks.
+    spread <- function(blocks) {
+      total <- sum(blocks)
+      count <- length(blocks)
+      if (count == 1) 
+        c(floor(total/2), total - floor(total/2))
+      else if (blocks[1] == 2) 
+        c(2, spread(blocks[2:count]))
+      else {
+        blocks[1] <- blocks[1] - 1
+        blocks[2] <- blocks[2] + 1
+        blocks
+      }
+    }
+    spread(blocks)
+  }
 }
 
 
