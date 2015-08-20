@@ -65,7 +65,7 @@ next.blocks <- function(blocks) {
 }
 
 
-f <- with.jokers(function(ranks, suits, jokers, pairs, cards, blocks) {
+permutations <- with.jokers(function(ranks, suits, jokers, pairs, cards, blocks) {
   block.cards <- sum(blocks)
   if (block.cards == 1) 
     list(c(1,0))
@@ -77,7 +77,7 @@ f <- with.jokers(function(ranks, suits, jokers, pairs, cards, blocks) {
     results <- lapply(n, function(n) {
 	  pairs.created <- n*block.pairs
 	  cards.used <- n*block.cards
-	  others <- f(ranks-n, suits, jokers, pairs-pairs.created, cards-cards.used, next.blocks(blocks))
+	  others <- permutations(ranks-n, suits, jokers, pairs-pairs.created, cards-cards.used, next.blocks(blocks))
       lapply(others, function(x) c(x[1] * block.permutations(ranks, suits, n, blocks), x[2] + cards.used))
     })
     unlist(results, recursive=FALSE)
@@ -97,7 +97,7 @@ pair.probability <- function(k, ranks, suits, jokers=0) {
       cards.used <- tuple[2]
       pair.permutations * prod((k-cards.used+1):(k-p)) / prod((deck-cards.used+1):deck)
     }
-    perms <- f(ranks, suits, jokers, p, k, blocks=min(suits, k))
+    perms <- permutations(ranks, suits, jokers, p, k, blocks=min(suits, k))
     sum(sapply(perms, probability))
   }
 
@@ -112,6 +112,7 @@ pair.probability <- function(k, ranks, suits, jokers=0) {
 #  k - the location of the first pair
 #
 first.pair.probability <- function(k, ranks, suits) {
+  print(k)
   if (k < 2)
     0
   else {
