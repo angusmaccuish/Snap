@@ -112,7 +112,6 @@ pair.probability <- function(k, ranks, suits, jokers=0) {
 #  k - the location of the first pair
 #
 first.pair.probability <- function(k, ranks, suits) {
-  print(k)
   if (k < 2)
     0
   else {
@@ -146,17 +145,12 @@ first.pair.mean.location <- function(ranks, suits) {
 #  Calculate the mean location of the first pair, using all available cores
 #
 first.pair.mean.location.parallel <- function(ranks, suits) {
-  slice <- function(x,n) {
-    N <- length(x)
-    lapply(seq(1,N,n), function(i) x[i:min(i+n-1,N)])
-  }
-  cards <- ranks*suits
+  k <- 1:(ranks*suits)
   cores <- parallel::detectCores()
-  batches <- slice(sample(1:cards), floor((cards+1)/cores))
   fun <- function(k) {
     print(k)
-    sum(k * sapply(k, function(k) first.pair.probability(k, ranks, suits)))
+    first.pair.probability(k, ranks, suits)
   }
-  results <- unlist(parallel::mclapply(batches, fun, mc.cores=cores))
-  sum(results)
+  results <- unlist(parallel::mclapply(k, fun, mc.cores=cores))
+  sum(k * results)
 }
