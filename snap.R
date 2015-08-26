@@ -1,4 +1,7 @@
-with.jokers <- function(fn) {
+# Take a normal pair/permutation generating function (assumed to ignore jokers when matching cards up),
+# and add pair contributions from the jokers. This will consequently reduce the number of normal pairs
+# to otherwise find, and increase the number of cards consumed.
+with.joker.pairs <- function(fn) {
   function(ranks, suits, jokers, pairs, cards, blocks) {
     block.size <- sum(blocks)
     joker.blocks <- {
@@ -65,7 +68,7 @@ next.blocks <- function(blocks) {
 }
 
 
-permutations <- with.jokers(function(ranks, suits, jokers, pairs, cards, blocks) {
+permutations <- with.joker.pairs(function(ranks, suits, jokers, pairs, cards, blocks) {
   block.cards <- sum(blocks)
   if (block.cards == 1) 
     list(c(1,0))
