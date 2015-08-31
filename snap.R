@@ -4,19 +4,19 @@
 with.joker.pairs <- function(fn) {
 	
   all.joker.blocks <- function(jokers) {
-	if (sum(jokers) > 2)
+    if (sum(jokers) > 2)
       c(list(jokers), all.joker.blocks(next.blocks(jokers)))
     else if (sum(jokers) == 2)
       c(list(2), list(0))
     else
-	  list(0)
+      list(0)
   }
   
   joker.blocks.allowed <- function(ranks, suits, pairs, cards) {
     function(j) {
       joker.cards <- sum(j)
-	  joker.pairs <- if (joker.cards > 0) sum(j-1) else 0
-	  joker.pairs <= pairs && joker.cards <= cards && (pairs-joker.pairs) <= floor((suits-1)*min(ranks*suits, cards-joker.cards)/suits)
+      joker.pairs <- if (joker.cards > 0) sum(j-1) else 0
+      joker.pairs <= pairs && joker.cards <= cards && (pairs-joker.pairs) <= floor((suits-1)*min(ranks*suits, cards-joker.cards)/suits)
     }
   }
 
@@ -28,12 +28,12 @@ with.joker.pairs <- function(fn) {
       results <- lapply(joker.blocks, function(j) {
         jokers.used <- sum(j)
         joker.pairs <- if (jokers.used > 0) sum(j-1) else 0
- 	    joker.perms <- block.permutations(1, jokers, jokers.used > 0, j)
+        joker.perms <- block.permutations(1, jokers, jokers.used > 0, j)
         results <- lapply(fn(ranks, suits, jokers-jokers.used, pairs-joker.pairs, cards-jokers.used, blocks), function(x) {
           c(x[1] * joker.perms, x[2] + jokers.used)
         })
       })
-	  unlist(results, recursive=FALSE)
+      unlist(results, recursive=FALSE)
     }
   }
 }
@@ -94,9 +94,9 @@ permutations <- function(ranks, suits, jokers, pairs, cards, blocks) {
     max.blocks <- ranks
     n = Filter(function(n) (pairs >= n*block.pairs && n*block.cards <= cards), min.blocks:max.blocks)
     results <- lapply(n, function(n) {
-	  pairs.created <- n*block.pairs
-	  cards.used <- n*block.cards
-	  others <- permutations(ranks-n, suits, jokers, pairs-pairs.created, cards-cards.used, next.blocks(blocks))
+      pairs.created <- n*block.pairs
+      cards.used <- n*block.cards
+      others <- permutations(ranks-n, suits, jokers, pairs-pairs.created, cards-cards.used, next.blocks(blocks))
       lapply(others, function(x) c(x[1] * block.permutations(ranks, suits, n, blocks), x[2] + cards.used))
     })
     unlist(results, recursive=FALSE)
@@ -116,7 +116,7 @@ pair.probability <- function(k, ranks, suits, jokers=0) {
       cards.used <- tuple[2]
       pair.permutations * prod((k-cards.used+1):(k-p)) / prod((deck-cards.used+1):deck)
     }
-	fn <- with.joker.pairs(permutations)
+    fn <- with.joker.pairs(permutations)
     perms <- fn(ranks, suits, jokers, p, k, blocks=min(suits, k))
     sum(sapply(perms, probability))
   }
@@ -168,7 +168,7 @@ first.pair.mean.location.parallel <- function(ranks, suits) {
   k <- 1:(ranks*suits)
   cores <- parallel::detectCores()
   fun <- function(k) {
-    print(k)
+    print(sprintf("%s %s", date(), k))
     first.pair.probability(k, ranks, suits)
   }
   results <- unlist(parallel::mclapply(k, fun, mc.cores=cores))
