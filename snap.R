@@ -1,44 +1,3 @@
-# Take a normal pair/permutation generating function (assumed to ignore jokers when matching cards up),
-# and add pair contributions from the jokers. This will consequently reduce the number of normal pairs
-# to otherwise find, and increase the number of cards consumed.
-with.joker.pairs <- function(fn) {
-	
-  all.joker.blocks <- function(jokers) {
-    if (sum(jokers) > 2)
-      c(list(jokers), all.joker.blocks(next.blocks(jokers)))
-    else if (sum(jokers) == 2)
-      c(list(2), list(0))
-    else
-      list(0)
-  }
-  
-  joker.blocks.allowed <- function(ranks, suits, pairs, cards) {
-    function(j) {
-      joker.cards <- sum(j)
-      joker.pairs <- if (joker.cards > 0) sum(j-1) else 0
-      joker.pairs <= pairs && joker.cards <= cards && (pairs-joker.pairs) <= floor((suits-1)*min(ranks*suits, cards-joker.cards)/suits)
-    }
-  }
-
-  function(ranks, suits, jokers, pairs, cards, blocks) {
-    if (jokers < 2)
-      fn(ranks, suits, jokers, pairs, cards, blocks) # cannot make joker pairs
-    else {
-      joker.blocks <- Filter(joker.blocks.allowed(ranks, suits, pairs, cards), all.joker.blocks(jokers))
-      results <- lapply(joker.blocks, function(j) {
-        jokers.used <- sum(j)
-        joker.pairs <- if (jokers.used > 0) sum(j-1) else 0
-        joker.perms <- block.permutations(1, jokers, jokers.used > 0, j)
-        results <- lapply(fn(ranks, suits, jokers-jokers.used, pairs-joker.pairs, cards-jokers.used, blocks), function(x) {
-          c(x[1] * joker.perms, x[2] + jokers.used)
-        })
-      })
-      unlist(results, recursive=FALSE)
-    }
-  }
-}
-
-
 block.permutations <- function(ranks, suits, ranks.used, blocks) {
   if (ranks.used == 0)
     1
@@ -100,6 +59,47 @@ permutations <- function(ranks, suits, jokers, pairs, cards, blocks) {
       lapply(others, function(x) c(x[1] * block.permutations(ranks, suits, n, blocks), x[2] + cards.used))
     })
     unlist(results, recursive=FALSE)
+  }
+}
+
+
+# Take a normal pair/permutation generating function (assumed to ignore jokers when matching cards up),
+# and add pair contributions from the jokers. This will consequently reduce the number of normal pairs
+# to otherwise find, and increase the number of cards consumed.
+with.joker.pairs <- function(fn) {
+	
+  all.joker.blocks <- function(jokers) {
+    if (sum(jokers) > 2)
+      c(list(jokers), all.joker.blocks(next.blocks(jokers)))
+    else if (sum(jokers) == 2)
+      c(list(2), list(0))
+    else
+      list(0)
+  }
+  
+  joker.blocks.allowed <- function(ranks, suits, pairs, cards) {
+    function(j) {
+      joker.cards <- sum(j)
+      joker.pairs <- if (joker.cards > 0) sum(j-1) else 0
+      joker.pairs <= pairs && joker.cards <= cards && (pairs-joker.pairs) <= floor((suits-1)*min(ranks*suits, cards-joker.cards)/suits)
+    }
+  }
+
+  function(ranks, suits, jokers, pairs, cards, blocks) {
+    if (jokers < 2)
+      fn(ranks, suits, jokers, pairs, cards, blocks) # cannot make joker pairs
+    else {
+      joker.blocks <- Filter(joker.blocks.allowed(ranks, suits, pairs, cards), all.joker.blocks(jokers))
+      results <- lapply(joker.blocks, function(j) {
+        jokers.used <- sum(j)
+        joker.pairs <- if (jokers.used > 0) sum(j-1) else 0
+        joker.perms <- block.permutations(1, jokers, jokers.used > 0, j)
+        results <- lapply(fn(ranks, suits, jokers-jokers.used, pairs-joker.pairs, cards-jokers.used, blocks), function(x) {
+          c(x[1] * joker.perms, x[2] + jokers.used)
+        })
+      })
+      unlist(results, recursive=FALSE)
+    }
   }
 }
 
