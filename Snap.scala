@@ -82,7 +82,8 @@ object Snap extends App with Utils {
           val pairsCreated = n * blockPairs
           val cardsUsed = n * blockCards
           val others = permutations(ranks - n, suits, jokers, pairs - pairsCreated, cards - cardsUsed, nextBlocks(blocks))
-          others map { case (x, y) => (x * blockPermutations(ranks, suits, n, blocks), y + cardsUsed) }
+          val blockPerms = blockPermutations(ranks, suits, n, blocks)
+          others map { case (x, y) => (x * blockPerms, y + cardsUsed) }
       }
     }
   }
